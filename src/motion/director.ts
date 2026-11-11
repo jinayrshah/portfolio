@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { actColour, cameraKeys } from "./timeline";
+import { actColour, cameraKeys, figureKeys } from "./timeline";
 
 /**
  * The director turns scroll progress into what the film should show:
@@ -49,4 +49,18 @@ export function lightColour(progress: number, out: THREE.Color): THREE.Color {
   const toMind = THREE.MathUtils.smoothstep(progress, 0.3, 0.4);
   const toCreation = THREE.MathUtils.smoothstep(progress, 0.52, 0.64);
   return out.copy(soul).lerp(mind, toMind).lerp(creation, toCreation);
+}
+
+/** Height of the soul's centre at this point in the scroll. */
+export function figureHeight(progress: number): number {
+  const p = Math.min(1, Math.max(0, progress));
+  let i = 0;
+  while (i < figureKeys.length - 2 && p > figureKeys[i + 1].at) i++;
+  const a = figureKeys[i];
+  const b = figureKeys[i + 1];
+  const t =
+    b.at > a.at ? Math.min(1, Math.max(0, (p - a.at) / (b.at - a.at))) : 0;
+  // Ease in and out so the rise accelerates and settles naturally.
+  const s = t * t * t * (t * (t * 6 - 15) + 10);
+  return a.y + (b.y - a.y) * s;
 }

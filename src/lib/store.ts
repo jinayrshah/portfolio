@@ -20,6 +20,8 @@ type State = {
   reducedMotion: boolean;
   /** Pointer position, -1..1 on both axes. */
   pointer: { x: number; y: number };
+  /** True once a mouse or pen has moved; false on touch-only devices. */
+  pointerActive: boolean;
   /** Jump to a point in the film. Set by the scroll controller. */
   scrollToProgress: (p: number) => void;
 };
@@ -35,5 +37,6 @@ export const useStore = create<State>(() => ({
   tier: "high",
   reducedMotion: false,
   pointer: { x: 0, y: 0 },
+  pointerActive: false,
   scrollToProgress: () => {},
 }));

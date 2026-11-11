@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useStore } from "@/lib/store";
-import { cameraGoal, lightColour } from "@/motion/director";
+import { cameraGoal, figureHeight, lightColour } from "@/motion/director";
 
 const vertex = /* glsl */ `
   varying vec2 vUv;
@@ -49,11 +49,17 @@ export function GuideLight() {
     if (!m || !u) return;
     const { progress, reducedMotion } = useStore.getState();
     cameraGoal(progress, scratch.p, scratch.t);
+    // While the soul is on screen the light is its heart: smaller and softer.
+    // Afterwards it follows the camera's target along the rest of the path.
+    const inSoul = 1 - THREE.MathUtils.smoothstep(progress, 0.3, 0.36);
+    scratch.p.set(0, figureHeight(progress) + 0.48, 0.1);
+    scratch.t.lerp(scratch.p, inSoul);
     m.position.copy(scratch.t);
     m.quaternion.copy(state.camera.quaternion);
     // Keep a steady apparent size, so it reads as a point of light at any range.
     const dist = state.camera.position.distanceTo(scratch.t);
-    m.scale.setScalar(THREE.MathUtils.clamp(dist * 0.16, 0.12, 6));
+    const size = THREE.MathUtils.lerp(0.16, 0.085, inSoul);
+    m.scale.setScalar(THREE.MathUtils.clamp(dist * size, 0.12, 6));
     lightColour(progress, u.uColour.value);
     u.uPulse.value = reducedMotion
       ? 0.9

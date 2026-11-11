@@ -61,6 +61,7 @@ export function Experience() {
     const onPointer = (e: PointerEvent) => {
       if (e.pointerType === "touch") return;
       useStore.setState({
+        pointerActive: true,
         pointer: {
           x: (e.clientX / window.innerWidth) * 2 - 1,
           y: -((e.clientY / window.innerHeight) * 2 - 1),

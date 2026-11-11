@@ -114,7 +114,7 @@ export function sceneProgress(id: SceneId, progress: number): number {
  * Camera keyframes. The camera wants to be at `position`, looking at `target`,
  * with field of view `fov`, when scroll progress equals `at`. Between
  * keyframes it follows a smooth curve; a spring then gives it weight.
- * `target` is also the path of the light the visitor follows.
+ * After the soul scenes, `target` is also the path of the light the visitor follows.
  */
 export type CameraKey = {
   name: string;
@@ -128,15 +128,15 @@ export const cameraKeys: CameraKey[] = [
   {
     name: "genesis-wide",
     at: 0.0,
-    position: [0, 0.4, 11],
-    target: [0, 0, 0],
+    position: [0, -1.5, 10],
+    target: [0, -1.75, 0],
     fov: 38,
   },
   {
     name: "genesis-close",
     at: 0.08,
-    position: [0, 0.2, 7],
-    target: [0, 0.3, 0],
+    position: [0, -1.0, 7.6],
+    target: [0, -1.2, 0],
     fov: 38,
   },
   {
@@ -266,3 +266,26 @@ export const actColour: Record<Act, string> = {
 
 /** Loader: the shortest time the Breath scene stays on screen, in seconds. */
 export const loaderMinSeconds = 2.2;
+
+/**
+ * The soul: a figure made of particles. `figureKeys` says where its centre
+ * is (height in world units) at each point of the scroll.
+ */
+export const figureKeys: { at: number; y: number }[] = [
+  { at: 0.0, y: 0 },
+  { at: 0.08, y: 0 },
+  { at: 0.2, y: 40 },
+  { at: 1.0, y: 40 },
+];
+
+export const soul = {
+  /** Seconds the particles take to gather into the figure after the loader. */
+  gatherSeconds: 6,
+  /** How much later the last particles set off, as a share of the gathering. */
+  gatherStagger: 0.5,
+  /** How far particles trail behind while the soul rises (seconds of lag). */
+  trail: 0.11,
+  /** Cursor: radius of influence and push distance, in world units. */
+  cursorRadius: 0.42,
+  cursorPush: 0.06,
+} as const;

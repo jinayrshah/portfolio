@@ -8,6 +8,7 @@ import { CameraRig } from "./CameraRig";
 import { DustField } from "./DustField";
 import { GuideLight } from "./GuideLight";
 import { Nebula } from "./Nebula";
+import { Soul } from "./Soul";
 
 /** Tells the loader when the first real frame has been drawn. */
 function FirstFrame() {
@@ -41,6 +42,7 @@ export default function World() {
       <CameraRig />
       <Nebula />
       <DustField count={settings.dust} />
+      <Soul count={settings.soul} />
       <GuideLight />
       <FirstFrame />
     </Canvas>
