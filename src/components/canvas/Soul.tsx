@@ -115,6 +115,9 @@ const pictureFragment = /* glsl */ `
   uniform vec2 uSize0, uSize1, uSize2, uSize3;       // each picture's size in world units
   uniform vec3 uStage;        // progress of the three changes, each 0..1
   uniform vec3 uBurstTint;
+  uniform float uBurstColour;
+  uniform float uBurstGain;
+  uniform float uFlow;
   uniform float uBurstWiden;  // the burst is drawn wider on wide screens, to fill them
   uniform float uReveal;      // 0 = hidden, 1 = whole
   uniform float uFade;
@@ -139,7 +142,7 @@ const pictureFragment = /* glsl */ `
     return max(texture2D(map, clamp(uv, 0.0, 1.0)).rgb - 0.012, 0.0) * edge;
   }
   // A change that spreads unevenly, so one picture melts into the next.
-  float melt(float t, float n) { return smoothstep(0.0, 1.0, t * 1.6 - n * 0.6); }
+  float melt(float t, float n) { return smoothstep(0.0, 1.0, t * 1.35 - n * 0.35); }
 
   void main() {
     vec2 world = vWorld;
@@ -159,36 +162,52 @@ const pictureFragment = /* glsl */ `
     float push = smoothstep(uCursorRadius * 1.6, 0.0, length(off));
     w += normalize(off + vec2(0.0001)) * push * push * uCursorOn * 0.07;
 
-    float n = noise(world * 2.2 + 3.0) * 0.65 + noise(world * 6.0 - 9.0) * 0.35;
+    float n = noise(world * 1.3 + 3.0) * 0.7 + noise(world * 3.1 - 9.0) * 0.3;
+
+    // The current every form is carried on while it changes: a slow turn
+    // about the heart plus a wandering drift. The form that is leaving is
+    // swept forwards along it and the one arriving settles back out of it,
+    // so the smoke of one becomes the smoke of the next.
+    vec2 current = vec2(noise(world * 0.8 + vec2(1.7, t * 2.0)) - 0.5, noise(world * 0.8 + vec2(8.3, -t * 2.0)) - 0.5) * 1.5;
+    current += vec2(-world.y, world.x) * 0.16;
+    vec3 s = uStage;
 
     // The risen soul, revealed from the heart outwards.
-    vec3 colour = picture(uMap0, uHeart0, uSize0, w);
+    vec3 colour = picture(uMap0, uHeart0, uSize0, w + current * s.x * uFlow);
     colour *= smoothstep(0.0, 0.35, uReveal * 1.75 - r / 4.0 - n * 0.25);
 
-    // 1. It opens its arms: the new form spreads out from the heart.
-    float open = melt(uStage.x, n * 0.6 + clamp(r / 4.5, 0.0, 1.0) * 0.4);
-    colour = mix(colour, picture(uMap1, uHeart1, uSize1, w), open);
+    // 1. It opens its arms.
+    float open = melt(s.x, n);
+    vec3 opened = picture(uMap1, uHeart1, uSize1, w - current * (1.0 - s.x) * uFlow + current * s.y * uFlow * 0.5);
+    colour = mix(colour, opened, open);
 
     // 2. Closer: the heart, in full detail, takes over the middle of the frame.
-    vec2 uvHeart = uHeart2 + w / uSize2;
-    float within = 1.0 - smoothstep(0.55, 1.0, length((uvHeart - 0.5) * vec2(1.7, 2.0)));
-    float close = melt(uStage.y, n);
-    colour = mix(colour * (1.0 - close * 0.75), picture(uMap2, uHeart2, uSize2, w), close * within);
+    vec2 wHeart = (w - current * (1.0 - s.y) * uFlow * 0.5) * mix(1.25, 1.0, s.y);
+    vec2 uvHeart = uHeart2 + wHeart / uSize2;
+    float within = 1.0 - smoothstep(0.35, 1.0, length((uvHeart - 0.5) * vec2(1.7, 2.0)));
+    float close = melt(s.y, n);
+    colour = mix(colour * (1.0 - close * 0.7), picture(uMap2, uHeart2, uSize2, wHeart), close * within);
 
-    // 3. The burst: light breaks out of the heart and fills the frame.
-    float burst = uStage.z;
+    // Each change glows a little at its height, as if the light were working.
+    float working = sin(3.14159 * s.x) + sin(3.14159 * s.y);
+    colour *= 1.0 + working * 0.18 * exp(-r * r * 0.5);
+
+    // 3. The burst: light swells out of the heart in a soft wave.
+    float burst = s.z;
     float spin = uTime * 0.02;
     mat2 turn = mat2(cos(spin), -sin(spin), sin(spin), cos(spin));
-    vec2 wb = (world - drift * 0.1) / mix(0.35, 1.0, burst * (2.0 - burst));
+    vec2 wb = (world - current * (1.0 - burst) * 0.4) / mix(0.3, 1.0, burst * (2.0 - burst));
     wb.x /= uBurstWiden;
     wb = turn * wb;
     vec2 uvBurst = uHeart3 + wb / uSize3;
-    float reach = 1.0 - smoothstep(0.3, 1.0, length((uvBurst - uHeart3) * vec2(2.0, 2.0 * uSize3.y / uSize3.x) * 0.95));
-    float lit = melt(burst, clamp(r / 3.0, 0.0, 1.0)) * reach;
+    float reach = 1.0 - smoothstep(0.15, 1.0, length((uvBurst - uHeart3) * vec2(2.0, 2.0 * uSize3.y / uSize3.x) * 0.95));
+    float front = burst * 4.5;
+    float lit = (1.0 - smoothstep(front - 2.2, front + 0.001, r + (0.5 - n) * 0.8)) * smoothstep(0.0, 0.25, burst) * reach;
     vec3 light = texture2D(uMap3, clamp(uvBurst, 0.0, 1.0)).rgb;
-    // Tint the body of the burst and leave its core white.
-    light *= mix(uBurstTint, vec3(1.0), smoothstep(0.75, 1.0, dot(light, vec3(0.333))));
-    colour = mix(colour * (1.0 - burst), light, lit);
+    // Quieten the burst: less colour, less glare, tinted to sit with the page.
+    light = pow(light, vec3(1.5));   // deepen the haze so the threads of light stay clear
+    light = mix(vec3(dot(light, vec3(0.333))), light, uBurstColour) * uBurstTint * uBurstGain;
+    colour = colour * (1.0 - lit * 0.9) + light * lit;
 
     // The heart breathes.
     float pulse = 0.5 + 0.5 * sin(uTime * 0.9);
@@ -253,6 +272,8 @@ export function Soul({ count }: { count: number }) {
     start: number | null;
     lastY: number;
     follow: { v: number };
+    stage: { v: number }[];
+    staged: boolean;
     rise: { v: number };
     riseNow: number;
     cursorOn: { v: number };
@@ -324,6 +345,9 @@ export function Soul({ count }: { count: number }) {
       uStage: { value: new THREE.Vector3() },
       uBurstTint: { value: new THREE.Color(soul.burstTint) },
       uBurstWiden: { value: 1 },
+      uBurstColour: { value: soul.burstColour },
+      uBurstGain: { value: soul.burstGain },
+      uFlow: { value: soul.flow },
       uReveal: { value: 0 },
       uFade: { value: 1 },
       uTime: { value: 0 },
@@ -344,6 +368,8 @@ export function Soul({ count }: { count: number }) {
       start: null,
       lastY: 0,
       follow: { v: 0 },
+      stage: [{ v: 0 }, { v: 0 }, { v: 0 }],
+      staged: false,
       rise: { v: 0 },
       riseNow: 0,
       cursorOn: { v: 0 },
@@ -369,11 +395,18 @@ export function Soul({ count }: { count: number }) {
     );
     // The three changes of form, each over its own stretch of the scroll.
     const stage = pu.uStage.value as THREE.Vector3;
-    stage.set(
-      THREE.MathUtils.smoothstep(progress, ...soul.forms[0].over),
-      THREE.MathUtils.smoothstep(progress, ...soul.forms[1].over),
-      THREE.MathUtils.smoothstep(progress, ...soul.forms[2].over),
-    );
+    // Each takes its time even when the visitor scrolls fast, so nothing snaps.
+    const settle = (now: number, index: number) => {
+      const goal = THREE.MathUtils.smoothstep(
+        progress,
+        ...soul.forms[index].over,
+      );
+      return reducedMotion || !m.staged
+        ? goal
+        : smoothDamp(now, goal, m.stage[index], soul.formSmoothTime, dt);
+    };
+    stage.set(settle(stage.x, 0), settle(stage.y, 1), settle(stage.z, 2));
+    m.staged = true;
 
     // Gathering plays on its own clock once the loader hands over.
     if (entered && m.start === null) m.start = now;

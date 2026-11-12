@@ -322,21 +322,21 @@ export const soul = {
       image: "/soul/open.webp",
       height: 5.8,
       heart: [0.622, 0.749],
-      over: [0.215, 0.3],
+      over: [0.2, 0.32],
     },
     {
       name: "heart",
       image: "/soul/heart.webp",
       height: 2.5,
       heart: [0.638, 0.547],
-      over: [0.36, 0.45],
+      over: [0.34, 0.47],
     },
     {
       name: "burst",
       image: "/soul/burst.webp",
       height: 6,
       heart: [0.54, 0.57],
-      over: [0.5, 0.58],
+      over: [0.49, 0.6],
     },
   ] as {
     name: string;
@@ -345,10 +345,16 @@ export const soul = {
     heart: [number, number];
     over: [number, number];
   }[],
-  /** Colour the burst is multiplied by; white leaves the picture as it is. */
-  burstTint: "#f0d9b4",
+  /** Seconds a change of form takes to settle, however fast the scroll. */
+  formSmoothTime: 0.55,
+  /** How far the smoke is carried while one form becomes the next (world units). */
+  flow: 0.9,
+  /** The burst: its tint, how much of its own gold it keeps (0 to 1), and its brightness. */
+  burstTint: "#efe1cf",
+  burstColour: 0.55,
+  burstGain: 0.8,
   /** Scroll range over which the last form fades as the beam leaves. */
-  leave: [0.6, 0.67] as [number, number],
+  leave: [0.61, 0.68] as [number, number],
   /** Width of the sheet everything is drawn on, in world units. */
   sheet: 16,
   /** How far above the figure's base height the heart sits. */
