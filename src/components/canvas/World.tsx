@@ -38,7 +38,7 @@ export default function World() {
       camera={{ fov: 38, near: 0.05, far: 1200, position: [0, 0.4, 11] }}
       aria-hidden
     >
-      <color attach="background" args={["#05060b"]} />
+      <color attach="background" args={["#020203"]} />
       <CameraRig />
       <Nebula />
       <DustField count={settings.dust} />

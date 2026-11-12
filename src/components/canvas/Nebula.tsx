@@ -51,9 +51,9 @@ const fragment = /* glsl */ `
     float wisps = fbm(d * 5.0 - vec3(t * 1.4, 0.0, t));
     float mask = smoothstep(0.48, 0.82, clouds) * (0.55 + 0.45 * wisps);
 
-    // Near-black with a blue cast, never pure black.
-    vec3 base = vec3(0.016, 0.019, 0.034);
-    vec3 colour = base + uColour * mask * 0.085;
+    // Near-black, never pure black.
+    vec3 base = vec3(0.008, 0.008, 0.011);
+    vec3 colour = base + uColour * mask * 0.045;
 
     // Fine grain hides banding in the dark gradients.
     float grain = hash(d * 913.0 + uTime) - 0.5;

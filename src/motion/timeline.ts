@@ -128,16 +128,38 @@ export const cameraKeys: CameraKey[] = [
   {
     name: "genesis-wide",
     at: 0.0,
-    position: [0, -1.5, 10],
-    target: [0, -1.75, 0],
+    position: [0, -0.6, 7.4],
+    target: [0, -0.6, 0],
     fov: 38,
   },
   {
     name: "genesis-close",
     at: 0.08,
-    position: [0, -1.0, 7.6],
-    target: [0, -1.2, 0],
+    position: [0, -0.3, 6.4],
+    target: [0, -0.3, 0],
     fov: 38,
+  },
+  // The camera climbs with the soul, a breath behind it.
+  {
+    name: "ascent-lift",
+    at: 0.11,
+    position: [0, 2.8, 7.2],
+    target: [0, 3.9, 0],
+    fov: 40,
+  },
+  {
+    name: "ascent-flight",
+    at: 0.14,
+    position: [0, 18.2, 8.4],
+    target: [0, 20.2, 0],
+    fov: 46,
+  },
+  {
+    name: "ascent-slow",
+    at: 0.17,
+    position: [0, 33.4, 9],
+    target: [0, 36, 0],
+    fov: 46,
   },
   {
     name: "ascent-arrive",
@@ -156,22 +178,22 @@ export const cameraKeys: CameraKey[] = [
   {
     name: "stillness-front",
     at: 0.34,
-    position: [0, 40.6, 6],
-    target: [0, 40.9, 0],
+    position: [0, 40.5, 6],
+    target: [0, 40.48, 0],
     fov: 34,
   },
   {
     name: "awakening-enter",
     at: 0.42,
-    position: [0, 41.1, 0.9],
-    target: [0, 41.15, 0],
+    position: [0, 40.48, 0.9],
+    target: [0, 40.48, 0],
     fov: 58,
   },
   {
     name: "awakening-inside",
     at: 0.5,
-    position: [0.3, 41.2, 0.25],
-    target: [0, 41.1, -0.6],
+    position: [0.3, 40.55, 0.25],
+    target: [0, 40.45, -0.6],
     fov: 50,
   },
   {
@@ -259,7 +281,7 @@ export const duration = { xs: 0.3, sm: 0.6, md: 1.2, lg: 2.4 } as const;
 
 /** Colour of the light in each act. The world blends between them. */
 export const actColour: Record<Act, string> = {
-  soul: "#bcd6ff",
+  soul: "#f6dcb0",
   mind: "#8f72ff",
   creation: "#f3c56f",
 };
@@ -268,8 +290,9 @@ export const actColour: Record<Act, string> = {
 export const loaderMinSeconds = 2.2;
 
 /**
- * The soul: a figure made of particles. `figureKeys` says where its centre
- * is (height in world units) at each point of the scroll.
+ * The soul: a figure of smoke and light, drawn from public/soul/soul.webp
+ * and from particles sampled out of it. `figureKeys` says where it is
+ * (height in world units) at each point of the scroll.
  */
 export const figureKeys: { at: number; y: number }[] = [
   { at: 0.0, y: 0 },
@@ -279,6 +302,22 @@ export const figureKeys: { at: number; y: number }[] = [
 ];
 
 export const soul = {
+  /** The picture of the soul. Replace the file to change the figure. */
+  image: "/soul/soul.webp",
+  /** Width divided by height of that picture. */
+  aspect: 941 / 1672,
+  /** Height of the picture in world units. */
+  height: 5.8,
+  /** Where the heart is in the picture: 0..1 from the left, 0..1 from the bottom. */
+  heart: [0.681, 0.65] as [number, number],
+  /** How far above the figure's base height the heart sits. */
+  heartLift: 0.48,
+  /** On wide screens the figure opens to the right of the name, by this share of the half-width. */
+  openingShift: 0.5,
+  /** Weight of the figure as it follows the scroll; close to the camera's own. */
+  followSmoothTime: 0.45,
+  /** How bright the particles stay once the figure is whole (0 to 1). */
+  restShimmer: 0.3,
   /** Seconds the particles take to gather into the figure after the loader. */
   gatherSeconds: 6,
   /** How much later the last particles set off, as a share of the gathering. */

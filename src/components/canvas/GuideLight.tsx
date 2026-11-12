@@ -4,7 +4,14 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useStore } from "@/lib/store";
-import { cameraGoal, figureHeight, lightColour } from "@/motion/director";
+import {
+  cameraGoal,
+  figureHeight,
+  figureNow,
+  figureOffsetX,
+  lightColour,
+} from "@/motion/director";
+import { soul } from "@/motion/timeline";
 
 const vertex = /* glsl */ `
   varying vec2 vUv;
@@ -52,18 +59,25 @@ export function GuideLight() {
     // While the soul is on screen the light is its heart: smaller and softer.
     // Afterwards it follows the camera's target along the rest of the path.
     const inSoul = 1 - THREE.MathUtils.smoothstep(progress, 0.3, 0.36);
-    scratch.p.set(0, figureHeight(progress) + 0.48, 0.1);
+    scratch.p.set(
+      figureOffsetX(progress, state.size.width / state.size.height),
+      (figureNow.ready ? figureNow.y : figureHeight(progress)) + soul.heartLift,
+      0.05,
+    );
     scratch.t.lerp(scratch.p, inSoul);
     m.position.copy(scratch.t);
     m.quaternion.copy(state.camera.quaternion);
     // Keep a steady apparent size, so it reads as a point of light at any range.
     const dist = state.camera.position.distanceTo(scratch.t);
-    const size = THREE.MathUtils.lerp(0.16, 0.085, inSoul);
+    const size = THREE.MathUtils.lerp(0.16, 0.07, inSoul);
     m.scale.setScalar(THREE.MathUtils.clamp(dist * size, 0.12, 6));
     lightColour(progress, u.uColour.value);
-    u.uPulse.value = reducedMotion
-      ? 0.9
-      : 0.86 + 0.14 * Math.sin(state.clock.elapsedTime * 0.9);
+    // The picture carries its own glowing heart, so the light only adds a breath to it.
+    u.uPulse.value =
+      (reducedMotion
+        ? 0.9
+        : 0.86 + 0.14 * Math.sin(state.clock.elapsedTime * 0.9)) *
+      THREE.MathUtils.lerp(1, 0.45, inSoul);
   });
 
   return (

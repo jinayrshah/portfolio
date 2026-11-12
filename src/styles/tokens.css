@@ -4,23 +4,24 @@
  */
 :root {
   /* Colour */
-  --void: #05060b;
-  --ink: #eef1f8;
-  --ink-quiet: rgba(238, 241, 248, 0.62);
-  --ink-faint: rgba(238, 241, 248, 0.32);
-  --hairline: rgba(238, 241, 248, 0.14);
-  --soul: #bcd6ff;
+  --void: #020203;
+  --ink: #f3f1ec;
+  --ink-quiet: rgba(243, 241, 236, 0.62);
+  --ink-faint: rgba(243, 241, 236, 0.34);
+  --hairline: rgba(243, 241, 236, 0.14);
+  --soul: #f6dcb0;
   --mind: #8f72ff;
   --creation: #f3c56f;
   /* The colour of the current act; updated as the visitor scrolls. */
   --light: var(--soul);
 
   /* Type */
-  --font-display: var(--font-cormorant), "Times New Roman", serif;
+  --font-display: var(--font-instrument), "Times New Roman", serif;
+  --font-wide: var(--font-archivo), "Arial Black", sans-serif;
   --font-body: var(--font-geist-sans), system-ui, sans-serif;
   --font-label: var(--font-geist-mono), ui-monospace, monospace;
 
-  --size-display: clamp(3rem, 9.5vw, 9rem);
+  --size-display: clamp(3.2rem, 10.5vw, 11rem);
   --size-title: clamp(2.4rem, 6vw, 5.5rem);
   --size-body: clamp(1rem, 1.25vw, 1.2rem);
   --size-label: 0.72rem;

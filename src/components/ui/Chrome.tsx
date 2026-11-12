@@ -6,6 +6,8 @@ import { scenes } from "@/motion/timeline";
 
 const spineScenes = scenes.filter((s) => s.spine);
 const work = scenes.find((s) => s.id === "constellation")!;
+const [first, ...rest] = site.name.split(" ");
+const last = rest.join(" ");
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /** Where a jump should land: a little way into the scene, once its text is in. */
@@ -29,8 +31,9 @@ export function Chrome() {
 
   return (
     <div className="chrome">
-      <span className="mark label" aria-hidden>
-        {site.initials}
+      <span className="mark" aria-hidden>
+        <span className="mark__first">{first}</span>
+        <span className="mark__last">{last}</span>
       </span>
 
       <button

@@ -13,7 +13,7 @@ export type StoryBlock = {
   eyebrow?: string;
   title?: string;
   lines?: string[];
-  align?: "center" | "left" | "right" | "bottom";
+  align?: "center" | "left" | "right" | "bottom" | "hero";
 };
 
 export const story: Record<SceneId, StoryBlock> = {
@@ -22,7 +22,7 @@ export const story: Record<SceneId, StoryBlock> = {
     eyebrow: site.roleLine,
     title: site.name,
     lines: [site.tagline, "Scroll to begin"],
-    align: "center",
+    align: "hero",
   },
   ascent: {
     lines: [

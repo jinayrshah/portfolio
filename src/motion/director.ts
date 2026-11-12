@@ -1,5 +1,10 @@
 import * as THREE from "three";
-import { actColour, cameraKeys, figureKeys } from "./timeline";
+import {
+  actColour,
+  cameraKeys,
+  figureKeys,
+  soul as soulFigure,
+} from "./timeline";
 
 /**
  * The director turns scroll progress into what the film should show:
@@ -51,6 +56,13 @@ export function lightColour(progress: number, out: THREE.Color): THREE.Color {
   return out.copy(soul).lerp(mind, toMind).lerp(creation, toCreation);
 }
 
+/**
+ * Where the soul actually is this frame. It follows its scripted height with
+ * the same weight as the camera, so a fast scroll never leaves it behind or
+ * lets it escape the frame. Written by the soul, read by the light at its heart.
+ */
+export const figureNow = { y: 0, ready: false };
+
 /** Height of the soul's centre at this point in the scroll. */
 export function figureHeight(progress: number): number {
   const p = Math.min(1, Math.max(0, progress));
@@ -63,4 +75,20 @@ export function figureHeight(progress: number): number {
   // Ease in and out so the rise accelerates and settles naturally.
   const s = t * t * t * (t * (t * 6 - 15) + 10);
   return a.y + (b.y - a.y) * s;
+}
+
+/**
+ * How far right of centre the soul's heart sits. On wide screens it opens
+ * beside the name and returns to the centre as it rises; on tall screens it
+ * stays centred on the picture.
+ */
+export function figureOffsetX(progress: number, aspect: number): number {
+  const wide = THREE.MathUtils.smoothstep(aspect, 0.9, 1.3);
+  const halfWidth = 2.45 * Math.min(aspect, 2.2);
+  const opening = THREE.MathUtils.lerp(
+    0.47,
+    soulFigure.openingShift * halfWidth,
+    wide,
+  );
+  return opening * (1 - THREE.MathUtils.smoothstep(progress, 0.08, 0.2));
 }

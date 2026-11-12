@@ -21,7 +21,7 @@ export function detectTier(): Tier {
 }
 
 export const tierSettings = {
-  high: { dust: 9000, soul: 70000, dpr: 2 },
-  mid: { dust: 5000, soul: 36000, dpr: 1.5 },
+  high: { dust: 9000, soul: 60000, dpr: 2 },
+  mid: { dust: 5000, soul: 32000, dpr: 1.5 },
   low: { dust: 2200, soul: 14000, dpr: 1 },
 } as const;
