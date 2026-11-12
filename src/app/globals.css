@@ -468,7 +468,13 @@ html.lenis body {
 
 @media (max-width: 640px) {
   /* On a phone the words sit over the figure, so the dark rises behind them. */
-  .block:not([data-align="center"]) {
+  .block[data-align="left"]::before,
+  .block[data-align="right"]::before,
+  .block[data-align="hero"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
     background: linear-gradient(
       to top,
       color-mix(in srgb, var(--void) 88%, transparent) 0%,
@@ -478,7 +484,7 @@ html.lenis body {
     opacity: 0;
     transition: opacity var(--dur-sm) linear;
   }
-  .block[data-active="true"] {
+  .block[data-active="true"]::before {
     opacity: 1;
   }
   .block {

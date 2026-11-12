@@ -99,25 +99,31 @@ const pointsFragment = /* glsl */ `
 /* ---------- The picture: revealed from the heart outwards, and kept alive ---------- */
 
 const pictureVertex = /* glsl */ `
-  varying vec2 vUv;
+  varying vec2 vWorld;
   void main() {
-    vUv = uv;
+    vWorld = position.xy;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
 const pictureFragment = /* glsl */ `
-  uniform sampler2D uMap;
+  uniform sampler2D uMap0;    // the soul, risen
+  uniform sampler2D uMap1;    // the soul, arms open
+  uniform sampler2D uMap2;    // the heart, close
+  uniform sampler2D uMap3;    // the burst
+  uniform vec2 uHeart0, uHeart1, uHeart2, uHeart3;   // the heart in each picture, 0..1
+  uniform vec2 uSize0, uSize1, uSize2, uSize3;       // each picture's size in world units
+  uniform vec3 uStage;        // progress of the three changes, each 0..1
+  uniform vec3 uBurstTint;
+  uniform float uBurstWiden;  // the burst is drawn wider on wide screens, to fill them
   uniform float uReveal;      // 0 = hidden, 1 = whole
   uniform float uFade;
   uniform float uTime;
   uniform float uRise;
-  uniform vec2 uHeart;        // where the heart is in the picture, 0..1
-  uniform vec2 uSize;         // picture size in world units
   uniform vec2 uCursor;       // cursor position, relative to the heart
   uniform float uCursorOn;
   uniform float uCursorRadius;
-  varying vec2 vUv;
+  varying vec2 vWorld;        // position relative to the heart, in world units
 
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   float noise(vec2 p) {
@@ -126,8 +132,17 @@ const pictureFragment = /* glsl */ `
     return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
   }
 
+  // One picture, placed by its heart, fading out softly at its own edges.
+  vec3 picture(sampler2D map, vec2 heart, vec2 size, vec2 w) {
+    vec2 uv = heart + w / size;
+    float edge = smoothstep(0.0, 0.06, uv.x) * smoothstep(1.0, 0.94, uv.x) * smoothstep(0.0, 0.1, uv.y) * smoothstep(1.0, 0.95, uv.y);
+    return max(texture2D(map, clamp(uv, 0.0, 1.0)).rgb - 0.012, 0.0) * edge;
+  }
+  // A change that spreads unevenly, so one picture melts into the next.
+  float melt(float t, float n) { return smoothstep(0.0, 1.0, t * 1.6 - n * 0.6); }
+
   void main() {
-    vec2 world = (vUv - uHeart) * uSize;   // position relative to the heart
+    vec2 world = vWorld;
     float r = length(world);
     float below = max(0.0, -world.y);
 
@@ -135,36 +150,58 @@ const pictureFragment = /* glsl */ `
     vec2 q = world * 1.6;
     float t = uTime * 0.14;
     vec2 drift = vec2(noise(q + vec2(0.0, t)) - 0.5, noise(q + vec2(5.2, -t)) - 0.5);
-    vec2 uv = vUv + drift * smoothstep(0.25, 2.6, r) * 0.022;
-    uv.x += sin(uTime * 0.35 + world.y * 1.7) * 0.0035 * below;
-
+    vec2 w = world - drift * smoothstep(0.25, 2.6, r) * 0.12;
+    w.x -= sin(uTime * 0.35 + world.y * 1.7) * 0.012 * below;
     // Rising draws the veils out behind the figure.
-    float stretch = clamp(uRise * 0.012, -0.25, 0.25);
-    uv.y += below / uSize.y * stretch;
-
+    w.y -= below * clamp(uRise * 0.012, -0.25, 0.25);
     // The cursor parts the smoke.
     vec2 off = world - uCursor;
     float push = smoothstep(uCursorRadius * 1.6, 0.0, length(off));
-    uv -= normalize(off + vec2(0.0001)) * push * push * uCursorOn * 0.014;
+    w += normalize(off + vec2(0.0001)) * push * push * uCursorOn * 0.07;
 
-    vec3 colour = max(texture2D(uMap, uv).rgb - 0.012, 0.0);
+    float n = noise(world * 2.2 + 3.0) * 0.65 + noise(world * 6.0 - 9.0) * 0.35;
 
-    // Revealed from the heart outwards, with a soft uneven edge.
-    float n = noise(world * 2.4 + 7.0);
-    float shown = smoothstep(0.0, 0.35, uReveal * 1.75 - r / 3.2 - n * 0.25);
+    // The risen soul, revealed from the heart outwards.
+    vec3 colour = picture(uMap0, uHeart0, uSize0, w);
+    colour *= smoothstep(0.0, 0.35, uReveal * 1.75 - r / 4.0 - n * 0.25);
+
+    // 1. It opens its arms: the new form spreads out from the heart.
+    float open = melt(uStage.x, n * 0.6 + clamp(r / 4.5, 0.0, 1.0) * 0.4);
+    colour = mix(colour, picture(uMap1, uHeart1, uSize1, w), open);
+
+    // 2. Closer: the heart, in full detail, takes over the middle of the frame.
+    vec2 uvHeart = uHeart2 + w / uSize2;
+    float within = 1.0 - smoothstep(0.55, 1.0, length((uvHeart - 0.5) * vec2(1.7, 2.0)));
+    float close = melt(uStage.y, n);
+    colour = mix(colour * (1.0 - close * 0.75), picture(uMap2, uHeart2, uSize2, w), close * within);
+
+    // 3. The burst: light breaks out of the heart and fills the frame.
+    float burst = uStage.z;
+    float spin = uTime * 0.02;
+    mat2 turn = mat2(cos(spin), -sin(spin), sin(spin), cos(spin));
+    vec2 wb = (world - drift * 0.1) / mix(0.35, 1.0, burst * (2.0 - burst));
+    wb.x /= uBurstWiden;
+    wb = turn * wb;
+    vec2 uvBurst = uHeart3 + wb / uSize3;
+    float reach = 1.0 - smoothstep(0.3, 1.0, length((uvBurst - uHeart3) * vec2(2.0, 2.0 * uSize3.y / uSize3.x) * 0.95));
+    float lit = melt(burst, clamp(r / 3.0, 0.0, 1.0)) * reach;
+    vec3 light = texture2D(uMap3, clamp(uvBurst, 0.0, 1.0)).rgb;
+    // Tint the body of the burst and leave its core white.
+    light *= mix(uBurstTint, vec3(1.0), smoothstep(0.75, 1.0, dot(light, vec3(0.333))));
+    colour = mix(colour * (1.0 - burst), light, lit);
 
     // The heart breathes.
     float pulse = 0.5 + 0.5 * sin(uTime * 0.9);
     colour *= 1.0 + exp(-r * r * 3.0) * pulse * 0.22;
 
-    float edge = smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.95, uv.x) * smoothstep(0.0, 0.1, uv.y) * smoothstep(1.0, 0.96, uv.y);
-    gl_FragColor = vec4(colour * shown * edge * uFade, 1.0);
+    gl_FragColor = vec4(colour * uFade, 1.0);
   }
 `;
 
-type Built = { geometry: THREE.BufferGeometry; texture: THREE.Texture };
+type Built = { geometry: THREE.BufferGeometry; textures: THREE.Texture[] };
 
-function build(img: HTMLImageElement, count: number): Built {
+function build(images: HTMLImageElement[], count: number): Built {
+  const img = images[0];
   const rand = seeded(20261112);
   const { positions, colours } = sampleImage(img, count, rand, {
     width: WIDTH,
@@ -191,12 +228,15 @@ function build(img: HTMLImageElement, count: number): Built {
   geometry.setAttribute("aScatter", new THREE.BufferAttribute(scatter, 3));
   geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 4));
 
-  const texture = new THREE.Texture(img);
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  texture.anisotropy = 4;
-  texture.needsUpdate = true;
-  return { geometry, texture };
+  const textures = images.map((image) => {
+    const texture = new THREE.Texture(image);
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.anisotropy = 4;
+    texture.needsUpdate = true;
+    return texture;
+  });
+  return { geometry, textures };
 }
 
 /**
@@ -227,10 +267,10 @@ export function Soul({ count }: { count: number }) {
   useEffect(() => {
     let alive = true;
     let made: Built | null = null;
-    loadImage(soul.image)
-      .then((img) => {
+    Promise.all([soul.image, ...soul.forms.map((f) => f.image)].map(loadImage))
+      .then((images) => {
         if (!alive) return;
-        made = build(img, count);
+        made = build(images, count);
         setBuilt(made);
       })
       .catch(() => {
@@ -239,7 +279,7 @@ export function Soul({ count }: { count: number }) {
     return () => {
       alive = false;
       made?.geometry.dispose();
-      made?.texture.dispose();
+      made?.textures.forEach((t) => t.dispose());
     };
   }, [count]);
 
@@ -266,13 +306,28 @@ export function Soul({ count }: { count: number }) {
 
   const pictureUniforms = useMemo(
     () => ({
-      uMap: { value: null as THREE.Texture | null },
+      uMap0: { value: null as THREE.Texture | null },
+      uMap1: { value: null as THREE.Texture | null },
+      uMap2: { value: null as THREE.Texture | null },
+      uMap3: { value: null as THREE.Texture | null },
+      uHeart0: { value: new THREE.Vector2(...soul.heart) },
+      uSize0: { value: new THREE.Vector2(WIDTH, HEIGHT) },
+      ...Object.fromEntries(
+        soul.forms.flatMap((f, i) => [
+          [`uHeart${i + 1}`, { value: new THREE.Vector2(...f.heart) }],
+          [
+            `uSize${i + 1}`,
+            { value: new THREE.Vector2(f.height * soul.aspect, f.height) },
+          ],
+        ]),
+      ),
+      uStage: { value: new THREE.Vector3() },
+      uBurstTint: { value: new THREE.Color(soul.burstTint) },
+      uBurstWiden: { value: 1 },
       uReveal: { value: 0 },
       uFade: { value: 1 },
       uTime: { value: 0 },
       uRise: { value: 0 },
-      uHeart: { value: new THREE.Vector2(soul.heart[0], soul.heart[1]) },
-      uSize: { value: new THREE.Vector2(WIDTH, HEIGHT) },
       uCursor: { value: new THREE.Vector2(999, 999) },
       uCursorOn: { value: 0 },
       uCursorRadius: { value: soul.cursorRadius },
@@ -303,7 +358,22 @@ export function Soul({ count }: { count: number }) {
     const { progress, entered, reducedMotion, pointer, pointerActive } =
       useStore.getState();
     const now = state.clock.elapsedTime;
-    pu.uMap.value = built.texture;
+    pu.uMap0.value = built.textures[0];
+    pu.uMap1.value = built.textures[1];
+    pu.uMap2.value = built.textures[2];
+    pu.uMap3.value = built.textures[3];
+    pu.uBurstWiden.value = THREE.MathUtils.clamp(
+      (state.size.width / state.size.height) * 1.15,
+      1,
+      2.4,
+    );
+    // The three changes of form, each over its own stretch of the scroll.
+    const stage = pu.uStage.value as THREE.Vector3;
+    stage.set(
+      THREE.MathUtils.smoothstep(progress, ...soul.forms[0].over),
+      THREE.MathUtils.smoothstep(progress, ...soul.forms[1].over),
+      THREE.MathUtils.smoothstep(progress, ...soul.forms[2].over),
+    );
 
     // Gathering plays on its own clock once the loader hands over.
     if (entered && m.start === null) m.start = now;
@@ -350,10 +420,9 @@ export function Soul({ count }: { count: number }) {
       u.uCursor.value.set(m.hit.x, m.hit.y);
       pu.uCursor.value.set(m.hit.x, m.hit.y);
     }
-    // The soul is whole until the camera passes into its heart.
-    const present = 1 - THREE.MathUtils.smoothstep(progress, 0.37, 0.43);
-    u.uFade.value = present;
-    pu.uFade.value = present;
+    // The points belong to the first form; the pictures stay until the beam leaves.
+    u.uFade.value = 1 - stage.x;
+    pu.uFade.value = 1 - THREE.MathUtils.smoothstep(progress, ...soul.leave);
     m.cursorNow = smoothDamp(
       m.cursorNow,
       pointerActive && !reducedMotion && progress < 0.34 ? 1 : 0,
@@ -375,16 +444,9 @@ export function Soul({ count }: { count: number }) {
 
   return (
     <group ref={group}>
-      <mesh
-        frustumCulled={false}
-        renderOrder={2}
-        position={[
-          (0.5 - soul.heart[0]) * WIDTH,
-          (0.5 - soul.heart[1]) * HEIGHT,
-          0,
-        ]}
-      >
-        <planeGeometry args={[WIDTH, HEIGHT]} />
+      <mesh frustumCulled={false} renderOrder={2}>
+        {/* One wide sheet centred on the heart; every picture is placed within it. */}
+        <planeGeometry args={[soul.sheet, soul.sheet]} />
         <shaderMaterial
           ref={picture}
           vertexShader={pictureVertex}

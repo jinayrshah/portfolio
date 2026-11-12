@@ -58,7 +58,7 @@ export function GuideLight() {
     cameraGoal(progress, scratch.p, scratch.t);
     // While the soul is on screen the light is its heart: smaller and softer.
     // Afterwards it follows the camera's target along the rest of the path.
-    const inSoul = 1 - THREE.MathUtils.smoothstep(progress, 0.3, 0.36);
+    const inSoul = 1 - THREE.MathUtils.smoothstep(progress, 0.58, 0.64);
     scratch.p.set(
       figureOffsetX(progress, state.size.width / state.size.height),
       (figureNow.ready ? figureNow.y : figureHeight(progress)) + soul.heartLift,

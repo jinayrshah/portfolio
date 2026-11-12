@@ -10,7 +10,7 @@
   --ink-faint: rgba(243, 241, 236, 0.34);
   --hairline: rgba(243, 241, 236, 0.14);
   --soul: #f6dcb0;
-  --mind: #b3a2f0;
+  --mind: #ffe2b0;
   --creation: #f3c56f;
   /* The colour of the current act; updated as the visitor scrolls. */
   --light: var(--soul);

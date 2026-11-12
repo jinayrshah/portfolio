@@ -169,38 +169,38 @@ export const cameraKeys: CameraKey[] = [
     fov: 46,
   },
   {
-    name: "stillness-orbit",
+    name: "stillness-drift",
     at: 0.27,
-    position: [7, 40.5, 5],
-    target: [0, 40, 0],
-    fov: 36,
+    position: [1.6, 39.9, 8.4],
+    target: [0, 39.6, 0],
+    fov: 38,
   },
   {
     name: "stillness-front",
     at: 0.34,
-    position: [0, 40.5, 6],
-    target: [0, 40.48, 0],
-    fov: 34,
+    position: [0, 40.4, 6.6],
+    target: [0, 40.2, 0],
+    fov: 36,
   },
   {
     name: "awakening-enter",
     at: 0.42,
-    position: [0, 40.48, 0.9],
-    target: [0, 40.48, 0],
-    fov: 58,
+    position: [0, 40.5, 3.3],
+    target: [0, 40.5, 0],
+    fov: 42,
   },
   {
     name: "awakening-inside",
     at: 0.5,
-    position: [0.3, 40.55, 0.9],
-    target: [0, 40.45, -3.4],
+    position: [0, 40.48, 2.5],
+    target: [0, 40.48, 0],
     fov: 50,
   },
   {
     name: "intention-heart",
     at: 0.6,
-    position: [0.2, 40.5, 1.2],
-    target: [0, 40.35, 0],
+    position: [0, 40.48, 3.6],
+    target: [0, 40.48, 0],
     fov: 44,
   },
   {
@@ -282,33 +282,9 @@ export const duration = { xs: 0.3, sm: 0.6, md: 1.2, lg: 2.4 } as const;
 /** Colour of the light in each act. The world blends between them. */
 export const actColour: Record<Act, string> = {
   soul: "#f6dcb0",
-  mind: "#b3a2f0",
+  mind: "#ffe2b0",
   creation: "#f3c56f",
 };
-
-/**
- * The mind: a few fine threads of light around the one light. Kept sparse on
- * purpose; raise `threads` or `branch` for a denser web.
- */
-export const mind = {
-  /** Number of main threads, and the chance per step that one branches. */
-  threads: 14,
-  branch: 0.012,
-  /** Length of a thread in world units, and the steps it is drawn in. */
-  reach: 4.2,
-  steps: 80,
-  /** How much a thread wanders as it grows. */
-  wander: 0.16,
-  /** Scroll range over which the threads grow, and over which they gather again. */
-  grow: [0.385, 0.47] as [number, number],
-  gather: [0.52, 0.595] as [number, number],
-  /** Overall brightness of the threads (0 to 1). */
-  opacity: 0.9,
-  /** How far along its thread a principle sits (0 to 1). */
-  nodeAt: 0.42,
-  coreColour: "#fff3dc",
-  threadColour: "#a99be0",
-} as const;
 
 /** Loader: the shortest time the Breath scene stays on screen, in seconds. */
 export const loaderMinSeconds = 2.2;
@@ -334,6 +310,47 @@ export const soul = {
   height: 5.8,
   /** Where the heart is in the picture: 0..1 from the left, 0..1 from the bottom. */
   heart: [0.681, 0.65] as [number, number],
+  /**
+   * The forms the soul passes through after it has risen. Each melts out of
+   * the one before over the scroll range `over`. `height` is the picture's
+   * height in world units (a smaller picture is a closer view), and `heart`
+   * is where its heart is, so every form stays centred on the same point.
+   */
+  forms: [
+    {
+      name: "open",
+      image: "/soul/open.webp",
+      height: 5.8,
+      heart: [0.622, 0.749],
+      over: [0.215, 0.3],
+    },
+    {
+      name: "heart",
+      image: "/soul/heart.webp",
+      height: 2.5,
+      heart: [0.638, 0.547],
+      over: [0.36, 0.45],
+    },
+    {
+      name: "burst",
+      image: "/soul/burst.webp",
+      height: 6,
+      heart: [0.54, 0.57],
+      over: [0.5, 0.58],
+    },
+  ] as {
+    name: string;
+    image: string;
+    height: number;
+    heart: [number, number];
+    over: [number, number];
+  }[],
+  /** Colour the burst is multiplied by; white leaves the picture as it is. */
+  burstTint: "#f0d9b4",
+  /** Scroll range over which the last form fades as the beam leaves. */
+  leave: [0.6, 0.67] as [number, number],
+  /** Width of the sheet everything is drawn on, in world units. */
+  sheet: 16,
   /** How far above the figure's base height the heart sits. */
   heartLift: 0.48,
   /** On wide screens the figure opens to the right of the name, by this share of the half-width. */

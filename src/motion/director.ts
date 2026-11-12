@@ -90,5 +90,14 @@ export function figureOffsetX(progress: number, aspect: number): number {
     soulFigure.openingShift * halfWidth,
     wide,
   );
-  return opening * (1 - THREE.MathUtils.smoothstep(progress, 0.08, 0.2));
+  // It rests to the right again while the About text is on screen.
+  const beside =
+    wide *
+    0.3 *
+    halfWidth *
+    THREE.MathUtils.smoothstep(progress, 0.2, 0.26) *
+    (1 - THREE.MathUtils.smoothstep(progress, 0.32, 0.38));
+  return (
+    opening * (1 - THREE.MathUtils.smoothstep(progress, 0.08, 0.2)) + beside
+  );
 }
