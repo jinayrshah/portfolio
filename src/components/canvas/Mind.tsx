@@ -97,6 +97,7 @@ function buildThreads(nodeCount: number) {
   const along: number[] = [];
   const seeds: number[] = [];
   const nodes: number[] = [];
+  const candidates: THREE.Vector3[] = [];
 
   const grow = (
     start: THREE.Vector3,
@@ -117,16 +118,8 @@ function buildThreads(nodeCount: number) {
       along.push(Math.min(1, t0), Math.min(1, t1));
       seeds.push(seed, seed);
       p.copy(next);
-      // A principle sits part-way along a thread that stays in view of the camera.
-      if (
-        depth === 0 &&
-        i === Math.floor(total * mind.nodeAt) &&
-        nodes.length < nodeCount * 3 &&
-        p.z < 0.6 &&
-        Math.abs(p.y) < 1.1 &&
-        Math.abs(p.x) > 0.7
-      )
-        nodes.push(p.x, p.y, p.z);
+      if (depth === 0 && i === Math.floor(total * mind.nodeAt))
+        candidates.push(p.clone());
       // Wander gently, and keep heading outwards.
       d.x += (rand() - 0.5) * mind.wander;
       d.y += (rand() - 0.5) * mind.wander;
@@ -158,6 +151,14 @@ function buildThreads(nodeCount: number) {
     const dir = new THREE.Vector3(Math.cos(a) * r, y * 0.8, Math.sin(a) * r);
     grow(new THREE.Vector3(), dir, mind.steps, 0, rand(), 0);
   }
+  // Principles sit part-way along the threads that stay best in view:
+  // out to the sides, near the camera's eye line, and not behind it.
+  const score = (v: THREE.Vector3) =>
+    Math.abs(v.x) - Math.abs(v.y) * 1.5 - Math.max(0, v.z) * 2;
+  candidates
+    .sort((a, b) => score(b) - score(a))
+    .slice(0, nodeCount)
+    .forEach((v) => nodes.push(v.x, v.y, v.z));
   return {
     positions: new Float32Array(positions),
     along: new Float32Array(along),
@@ -247,6 +248,10 @@ export function Mind() {
     );
     u.uOpacity.value = shown * mind.opacity;
     u.uTime.value = reducedMotion ? 0 : state.clock.elapsedTime;
+    // The nodes keep their own copies of the shared values.
+    nu.uGrow.value = u.uGrow.value;
+    nu.uGather.value = u.uGather.value;
+    nu.uOpacity.value = shown;
     // Principles light one after another through the Awakening scene.
     nu.uLit.value =
       THREE.MathUtils.smoothstep(
