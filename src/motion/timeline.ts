@@ -192,8 +192,8 @@ export const cameraKeys: CameraKey[] = [
   {
     name: "awakening-inside",
     at: 0.5,
-    position: [0.3, 40.55, 0.25],
-    target: [0, 40.45, -0.6],
+    position: [0.3, 40.55, 0.9],
+    target: [0, 40.45, -3.4],
     fov: 50,
   },
   {
@@ -282,9 +282,33 @@ export const duration = { xs: 0.3, sm: 0.6, md: 1.2, lg: 2.4 } as const;
 /** Colour of the light in each act. The world blends between them. */
 export const actColour: Record<Act, string> = {
   soul: "#f6dcb0",
-  mind: "#8f72ff",
+  mind: "#b3a2f0",
   creation: "#f3c56f",
 };
+
+/**
+ * The mind: a few fine threads of light around the one light. Kept sparse on
+ * purpose; raise `threads` or `branch` for a denser web.
+ */
+export const mind = {
+  /** Number of main threads, and the chance per step that one branches. */
+  threads: 14,
+  branch: 0.012,
+  /** Length of a thread in world units, and the steps it is drawn in. */
+  reach: 4.2,
+  steps: 80,
+  /** How much a thread wanders as it grows. */
+  wander: 0.16,
+  /** Scroll range over which the threads grow, and over which they gather again. */
+  grow: [0.385, 0.47] as [number, number],
+  gather: [0.52, 0.595] as [number, number],
+  /** Overall brightness of the threads (0 to 1). */
+  opacity: 0.9,
+  /** How far along its thread a principle sits (0 to 1). */
+  nodeAt: 0.42,
+  coreColour: "#fff3dc",
+  threadColour: "#a99be0",
+} as const;
 
 /** Loader: the shortest time the Breath scene stays on screen, in seconds. */
 export const loaderMinSeconds = 2.2;

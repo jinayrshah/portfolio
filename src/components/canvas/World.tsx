@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store";
 import { CameraRig } from "./CameraRig";
 import { DustField } from "./DustField";
 import { GuideLight } from "./GuideLight";
+import { Mind } from "./Mind";
 import { Nebula } from "./Nebula";
 import { Soul } from "./Soul";
 
@@ -43,6 +44,7 @@ export default function World() {
       <Nebula />
       <DustField count={settings.dust} />
       <Soul count={settings.soul} />
+      <Mind />
       <GuideLight />
       <FirstFrame />
     </Canvas>
