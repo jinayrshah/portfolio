@@ -366,7 +366,7 @@ export const creation = {
   burstSize: [2.3, 2.3] as [number, number],
   burstHeart: [0.54, 0.57] as [number, number],
   /** Point size of the dust, in pixels at device scale 1. */
-  dustSize: 2.5,
+  dustSize: 2.1,
   /**
    * While the projects play the tree moves aside and shrinks a little.
    * `shift` is a share of the screen width (negative is left); on a phone

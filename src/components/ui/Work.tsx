@@ -74,7 +74,13 @@ export function Work() {
       if (!on && !shown) return;
       shown = on;
       el.style.visibility = on ? "visible" : "hidden";
-      if (!on) return;
+      if (!on) {
+        // Children that were shown on their own must be hidden with the chapter.
+        stack.style.visibility = "hidden";
+        stack.style.opacity = "0";
+        panels.forEach((panel) => (panel.style.visibility = "hidden"));
+        return;
+      }
 
       // Lay the route over the tree exactly where the tree is drawn.
       const W = window.innerWidth;
@@ -157,7 +163,9 @@ export function Work() {
       // The cards rise over the resting tree.
       const c = u - count;
       stack.style.visibility = c > -1 ? "visible" : "hidden";
-      stack.style.opacity = String(1 - smooth(u, work.end - 0.6, work.end));
+      stack.style.opacity = String(
+        1 - smooth(Math.max(u, goal), work.end - 0.9, work.end - 0.3),
+      );
       cardEls.forEach((card, j) => {
         const t = c - j;
         const enter = t < 0 ? outCubic(clamp(1 + t)) : 1;

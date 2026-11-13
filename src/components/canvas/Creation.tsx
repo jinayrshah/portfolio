@@ -100,11 +100,18 @@ const fragment = /* glsl */ `
     tree *= 1.0 + smoothstep(0.55, 0.9, lum) * twinkle * 0.5 * smoothstep(0.8, 1.0, uGrow) * smoothstep(0.1, 0.4, fromRoot.y);
     colour += tree * mix(1.0, 0.3, uDim);
 
-    // The light itself, so the eye never loses it between beam and tree.
-    float d = length(f - root);
-    float star = exp(-d * d * 90.0) * 1.2 + exp(-d * d * 9.0) * 0.22;
+    // The light itself. It rides the tip of the beam, so it follows the beam's
+    // curve as the frame glides along it, and comes to rest as the tree's root.
+    vec2 anchorNow = mix(uBeamStart, uBeamStar, pan);
+    vec2 tip = root + (uBeamStar - anchorNow) * vec2(zoom * uPictureAspect, zoom);
+    float d = length(f - tip);
+    float star = exp(-d * d * 140.0) * 1.0 + exp(-d * d * 14.0) * 0.16;
     float pulse = 0.85 + 0.15 * sin(uTime * 0.9);
-    colour += uTint * star * pulse * smoothstep(0.05, 0.4, uStream) * (1.0 - smoothstep(0.5, 1.0, uGrow) * 0.8);
+    colour += uTint * star * pulse * smoothstep(0.3, 0.8, uStream) * (1.0 - smoothstep(0.5, 1.0, uGrow) * 0.8);
+    // The heart's glow holds the centre while the burst lets go, then thins away into the dust.
+    float h = length(f);
+    float heart = exp(-h * h * 220.0) * 0.9 + exp(-h * h * 20.0) * 0.12;
+    colour += uTint * heart * smoothstep(0.02, 0.2, uStream) * (1.0 - smoothstep(0.3, 0.7, uStream));
 
     gl_FragColor = vec4(colour, 1.0);
   }
@@ -158,7 +165,7 @@ const dustFragment = /* glsl */ `
     float d = length(gl_PointCoord - 0.5) * 2.0;
     float a = smoothstep(1.0, 0.0, d);
     vec3 c = mix(vec3(dot(vColour, vec3(0.333))), vColour, uColour) * uTint;
-    gl_FragColor = vec4(c * a * vAlpha * 1.9, 1.0);
+    gl_FragColor = vec4(c * a * a * vAlpha * 2.2, 1.0);
   }
 `;
 
