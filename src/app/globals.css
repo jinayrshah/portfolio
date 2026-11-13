@@ -959,3 +959,54 @@ html.lenis body {
   opacity: 0;
   transition: opacity 0.3s;
 }
+
+/* ---------- Sound: a row of fine bars that moves with the sound ---------- */
+.sound {
+  position: absolute;
+  right: var(--gutter);
+  bottom: calc(var(--gutter) - 0.35rem);
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.4rem 0;
+  background: none;
+  border: 0;
+  color: var(--ink-faint);
+  transition: color 0.4s;
+}
+.sound:hover,
+.sound[data-on="true"] {
+  color: var(--ink-quiet);
+}
+.sound__bars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 1.6rem;
+}
+.sound__bar {
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--soul);
+  opacity: 0.6;
+  transform: scaleY(0.14);
+  transition: opacity 0.6s;
+}
+.sound[data-on="true"] .sound__bar {
+  opacity: 0.9;
+  box-shadow: 0 0 6px rgba(243, 197, 111, 0.35);
+}
+.sound__label {
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .sound__label {
+    display: none;
+  }
+  .sound__bars {
+    height: 1.2rem;
+  }
+}

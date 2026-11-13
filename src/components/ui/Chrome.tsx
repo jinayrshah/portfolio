@@ -2,6 +2,7 @@
 
 import { site } from "@/content/site";
 import { useStore } from "@/lib/store";
+import { SoundToggle } from "./SoundToggle";
 import { scenes, work as workTiming } from "@/motion/timeline";
 
 const spineScenes = scenes.filter((s) => s.spine);
@@ -50,6 +51,8 @@ export function Chrome() {
         </span>
         <span className="where__name">{scene.name}</span>
       </p>
+
+      <SoundToggle />
 
       <nav aria-label="Chapters">
         <ol className="spine">
