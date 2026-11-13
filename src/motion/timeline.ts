@@ -345,6 +345,9 @@ export const soul = {
     heart: [number, number];
     over: [number, number];
   }[],
+  /** Ripples from pressing and dragging: their strength, and the drag distance between waves. */
+  rippleStrength: 1,
+  rippleSpacing: 0.22,
   /** Seconds a change of form takes to settle, however fast the scroll. */
   formSmoothTime: 0.55,
   /** How far the smoke is carried while one form becomes the next (world units). */

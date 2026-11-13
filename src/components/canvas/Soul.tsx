@@ -12,9 +12,44 @@ import { soul } from "@/motion/timeline";
 const WIDTH = soul.height * soul.aspect;
 const HEIGHT = soul.height;
 
+/**
+ * Ripples: each press or drag on the soul starts a wave that travels out
+ * across the figure and dies away, with a springy pull near the cursor.
+ * Particles and picture share this, so they move as one body.
+ */
+const ripple = /* glsl */ `
+  uniform vec4 uWave[6];      // x, y (relative to the heart), start time, strength
+  uniform vec2 uWaveDir[6];   // direction of the drag that made it
+  uniform float uNow;
+  vec2 ripple(vec2 p) {
+    vec2 d = vec2(0.0);
+    for (int i = 0; i < 6; i++) {
+      float age = uNow - uWave[i].z;
+      if (age < 0.0 || age > 5.0) continue;
+      vec2 off = p - uWave[i].xy;
+      float dist = length(off);
+      vec2 radial = off / (dist + 0.001);
+      // A slow ring travels outwards, lifting the surface as it passes.
+      float front = age * 1.15;
+      float ring = exp(-pow((dist - front) / 0.6, 2.0)) * exp(-age * 0.7);
+      // Near the cursor the body is pulled along the drag, then swings back like jelly.
+      float pull = exp(-dist * dist / 0.9) * exp(-age * 1.7) * cos(age * 7.0);
+      d += uWave[i].w * (radial * ring * 0.42 * cos((dist - front) * 3.5) + uWaveDir[i] * pull * 0.6);
+    }
+    return d;
+  }
+`;
+
 /* ---------- The particles: they gather into the figure and trail as it rises ---------- */
 
 const pointsVertex = /* glsl */ `
+  ${ripple}
+  uniform vec3 uStage;        // progress of the three changes of form
+  uniform float uFlow;
+  attribute vec3 aPos1;
+  attribute vec3 aPos2;
+  attribute vec3 aCol1;
+  attribute vec3 aCol2;
   uniform float uGather;      // 0 = scattered dust, 1 = the figure
   uniform float uStagger;
   uniform float uRise;        // upward speed, world units per second
@@ -49,8 +84,18 @@ const pointsVertex = /* glsl */ `
     from.y += sin(uTime * 0.3 + aSeed.w * 6.283) * 0.4 * (1.0 - e);
 
     // At rest: the figure, drifting a little, as smoke does.
-    vec3 body = position;
-    float away = length(position.xy);
+    // Each particle leaves for the next form at its own moment, on a curved path
+    // around the heart, so the matter of one form visibly becomes the next.
+    float a1 = smoothstep(0.0, 1.0, clamp(uStage.x * 1.5 - aSeed.z * 0.5, 0.0, 1.0));
+    float a2 = smoothstep(0.0, 1.0, clamp(uStage.y * 1.5 - aSeed.x * 0.5, 0.0, 1.0));
+    vec3 body = mix(mix(position, aPos1, a1), aPos2, a2);
+    float fly = sin(3.14159 * a1) + sin(3.14159 * a2);
+    body.xy += (vec2(-body.y, body.x) * 0.22 + (aSeed.xy - 0.5) * 0.9) * fly * uFlow * 0.6;
+    body.z += (aSeed.w - 0.5) * fly * 1.2;
+    // The burst throws them outwards.
+    float burst = uStage.z;
+    body.xy += normalize(body.xy + vec2(0.0001)) * burst * burst * (1.5 + aSeed.y * 7.0);
+    float away = length(body.xy);
     body.xy += vec2(sin(uTime * 0.5 + aSeed.y * 40.0), cos(uTime * 0.4 + aSeed.z * 40.0)) * 0.012 * (0.3 + away);
 
     vec3 p = mix(from, body, e);
@@ -65,6 +110,7 @@ const pointsVertex = /* glsl */ `
     float push = smoothstep(uCursorRadius, 0.0, length(off));
     push = push * push * uCursorOn * e;
     p.xy += normalize(off + vec2(0.0001)) * push * uCursorPush;
+    p.xy += ripple(p.xy) * e;
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
@@ -77,9 +123,11 @@ const pointsVertex = /* glsl */ `
     float near = smoothstep(0.15, 1.4, dist);
     // Once the picture is whole the points dim to a shimmer; rising wakes them again.
     float settled = smoothstep(0.75, 1.0, uGather);
-    float rest = mix(1.0, clamp(uRest + abs(uRise) * 0.12, 0.0, 1.0), settled);
+    float stirred = length(ripple(p.xy)) * 6.0;
+    float rest = mix(1.0, clamp(uRest + abs(uRise) * 0.12 + fly * 0.7 + stirred, 0.0, 1.0), settled);
+    rest *= 1.0 - smoothstep(0.45, 1.0, burst);
     vAlpha = mix(0.5, 1.0, e) * twinkle * near * rest * smoothstep(0.0, 0.12, uGather + 0.02);
-    vColour = aColour;
+    vColour = mix(mix(aColour, aCol1, a1), aCol2, a2);
   }
 `;
 
@@ -107,6 +155,7 @@ const pictureVertex = /* glsl */ `
 `;
 
 const pictureFragment = /* glsl */ `
+  ${ripple}
   uniform sampler2D uMap0;    // the soul, risen
   uniform sampler2D uMap1;    // the soul, arms open
   uniform sampler2D uMap2;    // the heart, close
@@ -161,6 +210,7 @@ const pictureFragment = /* glsl */ `
     vec2 off = world - uCursor;
     float push = smoothstep(uCursorRadius * 1.6, 0.0, length(off));
     w += normalize(off + vec2(0.0001)) * push * push * uCursorOn * 0.07;
+    w -= ripple(world);
 
     float n = noise(world * 1.3 + 3.0) * 0.7 + noise(world * 3.1 - 9.0) * 0.3;
 
@@ -227,6 +277,14 @@ function build(images: HTMLImageElement[], count: number): Built {
     height: HEIGHT,
     heart: soul.heart,
   });
+  // The same particles, placed again on each later form.
+  const later = soul.forms.slice(0, 2).map((form, i) =>
+    sampleImage(images[i + 1], count, rand, {
+      width: form.height * soul.aspect,
+      height: form.height,
+      heart: form.heart,
+    }),
+  );
   const scatter = new Float32Array(count * 3);
   const seeds = new Float32Array(count * 4);
   for (let i = 0; i < count; i++) {
@@ -244,6 +302,16 @@ function build(images: HTMLImageElement[], count: number): Built {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("aColour", new THREE.BufferAttribute(colours, 3));
+  later.forEach((form, i) => {
+    geometry.setAttribute(
+      `aPos${i + 1}`,
+      new THREE.BufferAttribute(form.positions, 3),
+    );
+    geometry.setAttribute(
+      `aCol${i + 1}`,
+      new THREE.BufferAttribute(form.colours, 3),
+    );
+  });
   geometry.setAttribute("aScatter", new THREE.BufferAttribute(scatter, 3));
   geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 4));
 
@@ -268,11 +336,41 @@ export function Soul({ count }: { count: number }) {
   const points = useRef<THREE.ShaderMaterial>(null);
   const picture = useRef<THREE.ShaderMaterial>(null);
   const [built, setBuilt] = useState<Built | null>(null);
+  // Where the visitor is pressing, in screen coordinates from -1 to 1.
+  const press = useRef({ down: false, x: 0, y: 0 });
+
+  useEffect(() => {
+    const at = (e: PointerEvent) => {
+      press.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      press.current.y = -((e.clientY / window.innerHeight) * 2 - 1);
+    };
+    const down = (e: PointerEvent) => {
+      at(e);
+      press.current.down = true;
+    };
+    const up = () => {
+      press.current.down = false;
+    };
+    window.addEventListener("pointerdown", down, { passive: true });
+    window.addEventListener("pointermove", at, { passive: true });
+    window.addEventListener("pointerup", up, { passive: true });
+    window.addEventListener("pointercancel", up, { passive: true });
+    return () => {
+      window.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointermove", at);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, []);
   const motion = useRef<{
     start: number | null;
     lastY: number;
     follow: { v: number };
     stage: { v: number }[];
+    waveIndex: number;
+    wasDown: boolean;
+    lastWave: THREE.Vector2;
+    lastWaveAt: number;
     staged: boolean;
     rise: { v: number };
     riseNow: number;
@@ -318,6 +416,13 @@ export function Soul({ count }: { count: number }) {
       uPixelRatio: { value: 1 },
       uHeight: { value: 800 },
       uRest: { value: soul.restShimmer },
+      uStage: { value: new THREE.Vector3() },
+      uFlow: { value: soul.flow },
+      uWave: {
+        value: Array.from({ length: 6 }, () => new THREE.Vector4(0, 0, -99, 0)),
+      },
+      uWaveDir: { value: Array.from({ length: 6 }, () => new THREE.Vector2()) },
+      uNow: { value: 0 },
       uFade: { value: 1 },
       // Fewer particles each carry a little more light, so every tier reads alike.
       uOpacity: { value: Math.min(0.9, 0.2 * Math.sqrt(70000 / count)) },
@@ -343,6 +448,11 @@ export function Soul({ count }: { count: number }) {
         ]),
       ),
       uStage: { value: new THREE.Vector3() },
+      uWave: {
+        value: Array.from({ length: 6 }, () => new THREE.Vector4(0, 0, -99, 0)),
+      },
+      uWaveDir: { value: Array.from({ length: 6 }, () => new THREE.Vector2()) },
+      uNow: { value: 0 },
       uBurstTint: { value: new THREE.Color(soul.burstTint) },
       uBurstWiden: { value: 1 },
       uBurstColour: { value: soul.burstColour },
@@ -369,6 +479,10 @@ export function Soul({ count }: { count: number }) {
       lastY: 0,
       follow: { v: 0 },
       stage: [{ v: 0 }, { v: 0 }, { v: 0 }],
+      waveIndex: 0,
+      wasDown: false,
+      lastWave: new THREE.Vector2(),
+      lastWaveAt: -9,
       staged: false,
       rise: { v: 0 },
       riseNow: 0,
@@ -453,12 +567,56 @@ export function Soul({ count }: { count: number }) {
       u.uCursor.value.set(m.hit.x, m.hit.y);
       pu.uCursor.value.set(m.hit.x, m.hit.y);
     }
-    // The points belong to the first form; the pictures stay until the beam leaves.
-    u.uFade.value = 1 - stage.x;
-    pu.uFade.value = 1 - THREE.MathUtils.smoothstep(progress, ...soul.leave);
+    // Pressing starts a ripple; dragging sends more along the path of the drag.
+    const held = press.current.down && !reducedMotion && progress < 0.5;
+    if (held) {
+      m.ray.setFromCamera(
+        m.ndc.set(press.current.x, press.current.y),
+        state.camera,
+      );
+      if (m.ray.ray.intersectPlane(m.plane, m.hit)) {
+        g.worldToLocal(m.hit);
+        const first = !m.wasDown;
+        const dx = m.hit.x - m.lastWave.x;
+        const dy = m.hit.y - m.lastWave.y;
+        const moved = Math.hypot(dx, dy);
+        if (
+          first ||
+          (moved > soul.rippleSpacing && now - m.lastWaveAt > 0.07)
+        ) {
+          const i = m.waveIndex++ % 6;
+          const speed = first ? 0 : moved / Math.max(now - m.lastWaveAt, 0.016);
+          const strength = first
+            ? soul.rippleStrength * 0.8
+            : soul.rippleStrength * Math.min(1.4, 0.5 + speed * 0.12);
+          for (const uniforms of [u, pu]) {
+            (uniforms.uWave.value as THREE.Vector4[])[i].set(
+              m.hit.x,
+              m.hit.y,
+              now,
+              strength,
+            );
+            (uniforms.uWaveDir.value as THREE.Vector2[])[i].set(
+              first ? 0 : dx / (moved + 1e-4),
+              first ? 0 : dy / (moved + 1e-4),
+            );
+          }
+          m.lastWave.set(m.hit.x, m.hit.y);
+          m.lastWaveAt = now;
+        }
+      }
+    }
+    m.wasDown = held;
+    u.uNow.value = now;
+    pu.uNow.value = now;
+    // The particles and the pictures stay until the beam leaves.
+    const present = 1 - THREE.MathUtils.smoothstep(progress, ...soul.leave);
+    u.uFade.value = present;
+    pu.uFade.value = present;
+    (u.uStage.value as THREE.Vector3).copy(stage);
     m.cursorNow = smoothDamp(
       m.cursorNow,
-      pointerActive && !reducedMotion && progress < 0.34 ? 1 : 0,
+      pointerActive && !reducedMotion && progress < 0.5 ? 1 : 0,
       m.cursorOn,
       0.4,
       dt,
