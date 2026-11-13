@@ -17,6 +17,20 @@ export const SCROLL_SCREENS = 6;
  * takes one step; `screensPerStep` is how much scrolling a step needs.
  */
 const workSteps = projects.length + cards.length;
+/** The cursor (desktop only): sizes in pixels, lag in seconds. */
+export const cursor = {
+  size: { idle: 34, grab: 64, link: 54, open: 46 },
+  /** Seconds the ring takes to catch the pointer. */
+  ringLag: 0.12,
+  /** The soul can be grabbed until this point of the film. */
+  grabUntil: 0.5,
+  /** From here the cursor turns warmer gold. */
+  warmFrom: 0.34,
+  /** How many dust motes trail it, and how strongly (0 hides the tail). */
+  motes: 8,
+  tail: 0.7,
+} as const;
+
 export const work = {
   holdAt: 0.948,
   screensPerStep: 0.9,

@@ -18,6 +18,7 @@ import {
 } from "@/motion/timeline";
 import { DebugHud } from "./ui/DebugHud";
 import { Chrome } from "./ui/Chrome";
+import { Cursor } from "./ui/Cursor";
 import { Loader } from "./ui/Loader";
 import { StoryOverlay } from "./ui/StoryOverlay";
 import { Work } from "./ui/Work";
@@ -174,6 +175,7 @@ export function Experience() {
         <Chrome />
       </main>
       <Loader />
+      <Cursor />
       <DebugHud />
     </div>
   );
