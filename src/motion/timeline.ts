@@ -1,3 +1,5 @@
+import { cards, projects } from "@/content/work";
+
 /**
  * The master timeline. Every scene length, camera keyframe, easing and
  * duration on the site is defined here, by name, so motion can be retimed by
@@ -8,6 +10,52 @@
 
 /** How many screen-heights of scrolling the whole film takes. */
 export const SCROLL_SCREENS = 6;
+
+/**
+ * The Work chapter. The film pauses at `holdAt` while the projects and cards
+ * play, then carries on to the closing scene. Each project and each card
+ * takes one step; `screensPerStep` is how much scrolling a step needs.
+ */
+const workSteps = projects.length + cards.length;
+export const work = {
+  holdAt: 0.948,
+  screensPerStep: 0.9,
+  /** The position, in steps, at which the chapter is over. */
+  end: workSteps + 0.5,
+  /** Turns chapter progress (0..1) into a position in steps, starting at -1. */
+  position: (w: number) => -1 + w * (workSteps + 1.5),
+  /** Chapter progress at which a given step is fully in place. */
+  at: (step: number) => (step + 1) / (workSteps + 1.5),
+} as const;
+export const WORK_SCREENS = (workSteps + 1.5) * work.screensPerStep;
+export const TOTAL_SCREENS = SCROLL_SCREENS + WORK_SCREENS;
+
+/** Where on the page (0..1) the Work chapter starts and ends. */
+const workFrom = (work.holdAt * SCROLL_SCREENS) / TOTAL_SCREENS;
+const workTo = workFrom + WORK_SCREENS / TOTAL_SCREENS;
+
+/** Turns a place on the page (0..1) into film progress and Work progress. */
+export function fromPage(page: number): { progress: number; work: number } {
+  const scale = TOTAL_SCREENS / SCROLL_SCREENS;
+  if (page <= workFrom) return { progress: page * scale, work: 0 };
+  if (page < workTo)
+    return {
+      progress: work.holdAt,
+      work: (page - workFrom) / (workTo - workFrom),
+    };
+  return {
+    progress: Math.min(1, work.holdAt + (page - workTo) * scale),
+    work: 1,
+  };
+}
+
+/** The place on the page for a moment of the film, or of the Work chapter. */
+export function toPage(progress: number, workProgress = 0): number {
+  const scale = SCROLL_SCREENS / TOTAL_SCREENS;
+  if (workProgress > 0) return workFrom + workProgress * (workTo - workFrom);
+  if (progress <= work.holdAt) return progress * scale;
+  return workTo + (progress - work.holdAt) * scale;
+}
 
 export type Act = "soul" | "mind" | "creation";
 

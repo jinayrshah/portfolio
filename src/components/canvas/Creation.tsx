@@ -189,10 +189,13 @@ export function Creation() {
       },
     });
     const dt = Math.min(delta, 1 / 20);
-    const { progress, reducedMotion } = useStore.getState();
+    const { progress, reducedMotion, work } = useStore.getState();
     // Each move follows the scroll with weight, so a fast scroll cannot snap it.
     for (const key of keys) {
-      const goal = THREE.MathUtils.smoothstep(progress, ...creation.over[key]);
+      let goal = THREE.MathUtils.smoothstep(progress, ...creation.over[key]);
+      // The tree also rests while the Work chapter plays in front of it.
+      if (key === "dim")
+        goal = Math.max(goal, THREE.MathUtils.smoothstep(work, 0.01, 0.08));
       m.value[key] =
         reducedMotion || !m.ready
           ? goal

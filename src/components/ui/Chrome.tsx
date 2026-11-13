@@ -2,10 +2,9 @@
 
 import { site } from "@/content/site";
 import { useStore } from "@/lib/store";
-import { scenes } from "@/motion/timeline";
+import { scenes, work as workTiming } from "@/motion/timeline";
 
 const spineScenes = scenes.filter((s) => s.spine);
-const work = scenes.find((s) => s.id === "constellation")!;
 const [first, ...rest] = site.name.split(" ");
 const last = rest.join(" ");
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -18,6 +17,7 @@ const landing = (s: (typeof scenes)[number]) =>
 export function Chrome() {
   const sceneIndex = useStore((s) => s.sceneIndex);
   const scrollToProgress = useStore((s) => s.scrollToProgress);
+  const scrollToWork = useStore((s) => s.scrollToWork);
   const scene = scenes[sceneIndex];
 
   // The spine light that is lit: the current scene, or the last lit one before it.
@@ -39,7 +39,7 @@ export function Chrome() {
       <button
         type="button"
         className="skip label"
-        onClick={() => scrollToProgress(landing(work))}
+        onClick={() => scrollToWork(workTiming.at(0))}
       >
         Skip to work
       </button>

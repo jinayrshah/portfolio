@@ -11,12 +11,16 @@ import {
   ease,
   sceneIndexAt,
   scenes,
-  SCROLL_SCREENS,
+  fromPage,
+  toPage,
+  TOTAL_SCREENS,
+  work as workTiming,
 } from "@/motion/timeline";
 import { DebugHud } from "./ui/DebugHud";
 import { Chrome } from "./ui/Chrome";
 import { Loader } from "./ui/Loader";
 import { StoryOverlay } from "./ui/StoryOverlay";
+import { Work } from "./ui/Work";
 
 const World = dynamic(() => import("./canvas/World"), { ssr: false });
 
@@ -77,11 +81,15 @@ export function Experience() {
     const limit = () =>
       Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     const publish = (scroll: number, velocity: number) => {
-      const progress = Math.min(1, Math.max(0, scroll / limit()));
+      const page = Math.min(1, Math.max(0, scroll / limit()));
+      const { progress, work } = fromPage(page);
       const index = sceneIndexAt(progress);
+      // True from the moment the first project starts to rise.
+      const inWork = work > workTiming.at(-0.6);
       const s = useStore.getState();
       if (s.sceneIndex !== index) useStore.setState({ sceneIndex: index });
-      useStore.setState({ progress, velocity });
+      if (s.inWork !== inWork) useStore.setState({ inWork });
+      useStore.setState({ progress, work, velocity });
     };
 
     let lenis: Lenis | null = null;
@@ -92,7 +100,9 @@ export function Experience() {
       window.addEventListener("scroll", onNativeScroll, { passive: true });
       useStore.setState({
         scrollToProgress: (p) =>
-          window.scrollTo({ top: p * limit(), behavior: "auto" }),
+          window.scrollTo({ top: toPage(p) * limit(), behavior: "auto" }),
+        scrollToWork: (w) =>
+          window.scrollTo({ top: toPage(0, w) * limit(), behavior: "auto" }),
       });
     } else {
       lenis = new Lenis({
@@ -109,7 +119,12 @@ export function Experience() {
       frame = requestAnimationFrame(raf);
       useStore.setState({
         scrollToProgress: (p) =>
-          lenis!.scrollTo(p * limit(), {
+          lenis!.scrollTo(toPage(p) * limit(), {
+            duration: duration.lg,
+            easing: inOut,
+          }),
+        scrollToWork: (w) =>
+          lenis!.scrollTo(toPage(0, w) * limit(), {
             duration: duration.lg,
             easing: inOut,
           }),
@@ -150,11 +165,12 @@ export function Experience() {
       <div className="vignette" aria-hidden />
       <div
         className="track"
-        style={{ height: `${(SCROLL_SCREENS + 1) * 100}svh` }}
+        style={{ height: `${(TOTAL_SCREENS + 1) * 100}svh` }}
         aria-hidden
       />
       <main className="ui">
         <StoryOverlay />
+        <Work />
         <Chrome />
       </main>
       <Loader />

@@ -71,9 +71,7 @@ export const story: Record<SceneId, StoryBlock> = {
   constellation: {
     eyebrow: "Work",
     title: "Everything I have made",
-    lines: [
-      "Skills, projects, research and achievements arrive here in phase 5.",
-    ],
+    lines: ["Projects, skills, research and achievements. Keep scrolling."],
     align: "left",
   },
   return: {

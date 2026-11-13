@@ -25,6 +25,7 @@ function Rise({ children, i }: { children: string; i: number }) {
 export function StoryOverlay() {
   const sceneIndex = useStore((s) => s.sceneIndex);
   const entered = useStore((s) => s.entered);
+  const inWork = useStore((s) => s.inWork);
 
   return (
     <>
@@ -39,7 +40,12 @@ export function StoryOverlay() {
             className="block"
             data-scene={scene.id}
             data-align={block.align ?? "center"}
-            data-active={entered && sceneIndex === index}
+            data-active={
+              entered &&
+              sceneIndex === index &&
+              // The Work chapter takes over from the line that introduces it.
+              !(inWork && scene.id === "constellation")
+            }
             aria-label={scene.name}
           >
             {block.eyebrow && (
