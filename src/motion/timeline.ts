@@ -345,7 +345,7 @@ export const creation = {
   /** Width divided by height of these pictures. */
   pictureAspect: 2752 / 1536,
   /** Where the frame starts on the beam, and the star at its tip. */
-  beamStart: [0.34, 0.5] as [number, number],
+  beamStart: [0.45, 0.5] as [number, number],
   beamStar: [0.927, 0.5] as [number, number],
   ribbonStar: [0.906, 0.523] as [number, number],
   /** The glow at the foot of the tree. */
@@ -366,13 +366,13 @@ export const creation = {
   burstSize: [2.3, 2.3] as [number, number],
   burstHeart: [0.54, 0.57] as [number, number],
   /** Point size of the dust, in pixels at device scale 1. */
-  dustSize: 2.2,
+  dustSize: 2.5,
   /**
    * While the projects play the tree moves aside and shrinks a little.
    * `shift` is a share of the screen width (negative is left); on a phone
    * it lifts instead, by `lift` (screen is 2 high).
    */
-  focus: { shift: -0.27, scale: 0.84, lift: 0.42, phoneScale: 0.92 },
+  focus: { shift: -0.2, scale: 0.72, lift: 0.42, phoneScale: 0.92 },
   /**
    * The light's route through the tree, one hop per project, in pixels on
    * the tree picture shrunk to 1376 by 768 (0,0 is the top left). Each hop
@@ -426,7 +426,7 @@ export const creation = {
   /** The scroll range of each move. */
   over: {
     stream: [0.56, 0.665],
-    beamIn: [0.605, 0.675],
+    beamIn: [0.6, 0.665],
     pan: [0.6, 0.715],
     settle: [0.69, 0.75],
     grow: [0.715, 0.83],

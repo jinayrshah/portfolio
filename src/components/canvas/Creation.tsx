@@ -72,7 +72,7 @@ const fragment = /* glsl */ `
 
     // ---- The beam: the frame glides along it from the burst to its star. ----
     float pan = ease(uPan);
-    float zoom = mix(3.4, 1.7, pan) * mix(1.0, 0.8, ease(uSettle));
+    float zoom = mix(2.2, 1.7, pan) * mix(1.0, 0.8, ease(uSettle));
     vec2 fb = f + drift * 0.05 * (1.0 - pan * 0.5);
     // The finer river sways a little against the first, so the two never lock together.
     vec2 flow = vec2(sin(uTime * 0.17) * 0.006, cos(uTime * 0.13) * 0.004);
@@ -101,7 +101,7 @@ const fragment = /* glsl */ `
     colour += tree * mix(1.0, 0.3, uDim);
 
     // The light itself, so the eye never loses it between beam and tree.
-    float d = length(f - light);
+    float d = length(f - root);
     float star = exp(-d * d * 90.0) * 1.2 + exp(-d * d * 9.0) * 0.22;
     float pulse = 0.85 + 0.15 * sin(uTime * 0.9);
     colour += uTint * star * pulse * smoothstep(0.05, 0.4, uStream) * (1.0 - smoothstep(0.5, 1.0, uGrow) * 0.8);
@@ -144,7 +144,7 @@ const dustVertex = /* glsl */ `
     gl_PointSize = uSize * (0.6 + aSeed * 0.9) * (1.0 + lift * 0.4);
     vColour = aColour;
     // Appear as the burst picture dissolves; fade to a few sparks once the beam is drawn.
-    float show = smoothstep(0.0, 0.12, uStream) * mix(1.0, 0.25, smoothstep(0.8, 1.0, uStream));
+    float show = smoothstep(0.0, 0.12, uStream) * mix(1.0, 0.35, smoothstep(0.85, 1.0, uStream));
     vAlpha = show * (0.45 + lift * 0.9) * uFade;
   }
 `;
@@ -158,7 +158,7 @@ const dustFragment = /* glsl */ `
     float d = length(gl_PointCoord - 0.5) * 2.0;
     float a = smoothstep(1.0, 0.0, d);
     vec3 c = mix(vec3(dot(vColour, vec3(0.333))), vColour, uColour) * uTint;
-    gl_FragColor = vec4(c * a * a * vAlpha, 1.0);
+    gl_FragColor = vec4(c * a * vAlpha * 1.9, 1.0);
   }
 `;
 
@@ -438,7 +438,7 @@ export function Creation() {
           tierSettings[useStore.getState().tier].dpr,
         );
       d.uBeamZoom.value =
-        THREE.MathUtils.lerp(3.4, 1.7, panE) *
+        THREE.MathUtils.lerp(2.2, 1.7, panE) *
         THREE.MathUtils.lerp(1, 0.8, settled);
       d.uBeamAnchor.value.set(
         THREE.MathUtils.lerp(creation.beamStart[0], creation.beamStar[0], panE),

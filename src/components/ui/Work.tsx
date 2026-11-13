@@ -84,10 +84,14 @@ export function Work() {
       const treeW = treeH * creation.pictureAspect;
       const baseX = W / 2 + treeNow.x * unit;
       const baseY = H / 2 - treeNow.y * unit;
-      const left = baseX - creation.treeBase[0] * treeW;
+      // On a tall screen the tree is wider than the screen, so the route is
+      // drawn narrower about the trunk and every blossom stays in view.
+      const narrowScreen = W / H < 1.1;
+      const routeW = narrowScreen ? treeW * 0.42 : treeW;
+      const left = baseX - creation.treeBase[0] * routeW;
       const top = baseY - (1 - creation.treeBase[1]) * treeH;
       canopy.style.transform = `translate3d(${left}px, ${top}px, 0)`;
-      canopy.style.width = `${treeW}px`;
+      canopy.style.width = `${routeW}px`;
       canopy.style.height = `${treeH}px`;
       canopy.style.opacity = String(treeNow.focus);
 
@@ -132,7 +136,7 @@ export function Work() {
       // A thread of light from the open blossom to its project's title.
       if (current >= 0) {
         const [bx, by] = routes[current][routes[current].length - 1];
-        const x0 = left + (bx / VIEW_W) * treeW;
+        const x0 = left + (bx / VIEW_W) * routeW;
         const y0 = top + (by / VIEW_H) * treeH;
         const title = panels[current]
           .querySelector(".proj__title")!

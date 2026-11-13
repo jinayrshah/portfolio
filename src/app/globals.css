@@ -541,7 +541,7 @@ html.lenis body {
 .canopy__trail {
   fill: none;
   stroke: #fff1dc;
-  stroke-width: 2.2;
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-dasharray: 1 1;
   stroke-dashoffset: 1;
