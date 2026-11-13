@@ -360,16 +360,80 @@ export const creation = {
   colour: 0.55,
   /** Seconds each move takes to settle, however fast the scroll. */
   smoothTime: 0.5,
+  /** How many points of dust carry the burst into the beam, by device tier. */
+  dust: { high: 26000, mid: 16000, low: 8000 },
+  /** Size of the burst on screen (screen is 2 high; x is per unit of aspect). */
+  burstSize: [2.3, 2.3] as [number, number],
+  burstHeart: [0.54, 0.57] as [number, number],
+  /** Point size of the dust, in pixels at device scale 1. */
+  dustSize: 2.2,
+  /**
+   * While the projects play the tree moves aside and shrinks a little.
+   * `shift` is a share of the screen width (negative is left); on a phone
+   * it lifts instead, by `lift` (screen is 2 high).
+   */
+  focus: { shift: -0.27, scale: 0.84, lift: 0.42, phoneScale: 0.92 },
+  /**
+   * The light's route through the tree, one hop per project, in pixels on
+   * the tree picture shrunk to 1376 by 768 (0,0 is the top left). Each hop
+   * starts where the last ended; the first rises from the root. The last
+   * point of each hop is that project's blossom.
+   */
+  routes: [
+    [
+      [690, 600],
+      [684, 520],
+      [660, 440],
+      [610, 380],
+      [520, 335],
+      [400, 330],
+      [270, 355],
+      [175, 378],
+    ],
+    [
+      [175, 378],
+      [290, 345],
+      [410, 300],
+      [440, 230],
+      [410, 165],
+      [358, 118],
+    ],
+    [
+      [358, 118],
+      [420, 180],
+      [520, 200],
+      [600, 170],
+      [650, 110],
+      [692, 32],
+    ],
+    [
+      [692, 32],
+      [700, 110],
+      [760, 170],
+      [830, 150],
+      [870, 110],
+      [898, 70],
+    ],
+    [
+      [898, 70],
+      [880, 150],
+      [920, 230],
+      [1010, 280],
+      [1080, 270],
+      [1138, 256],
+    ],
+  ] as [number, number][][],
   /** The scroll range of each move. */
   over: {
-    beamIn: [0.575, 0.64],
+    stream: [0.56, 0.665],
+    beamIn: [0.605, 0.675],
     pan: [0.6, 0.715],
     settle: [0.69, 0.75],
     grow: [0.715, 0.83],
     beamOut: [0.72, 0.79],
     dim: [0.955, 1.0],
   } as Record<
-    "beamIn" | "pan" | "settle" | "grow" | "beamOut" | "dim",
+    "stream" | "beamIn" | "pan" | "settle" | "grow" | "beamOut" | "dim",
     [number, number]
   >,
 } as const;
@@ -445,7 +509,7 @@ export const soul = {
   burstColour: 0.55,
   burstGain: 0.8,
   /** Scroll range over which the last form fades as the beam leaves. */
-  leave: [0.61, 0.68] as [number, number],
+  leave: [0.565, 0.62] as [number, number],
   /** Width of the sheet everything is drawn on, in world units. */
   sheet: 16,
   /** How far above the figure's base height the heart sits. */
