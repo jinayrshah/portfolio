@@ -286,6 +286,46 @@ export const actColour: Record<Act, string> = {
   creation: "#f3c56f",
 };
 
+/**
+ * Creation: the beam and the tree, drawn across the whole screen.
+ * Points in a picture are given as 0..1 from the left and 0..1 from the bottom.
+ */
+export const creation = {
+  beam: "/creation/beam.webp",
+  ribbon: "/creation/ribbon.webp",
+  tree: "/creation/tree.webp",
+  /** Width divided by height of these pictures. */
+  pictureAspect: 2752 / 1536,
+  /** Where the frame starts on the beam, and the star at its tip. */
+  beamStart: [0.34, 0.5] as [number, number],
+  beamStar: [0.927, 0.5] as [number, number],
+  ribbonStar: [0.906, 0.523] as [number, number],
+  /** The glow at the foot of the tree. */
+  treeBase: [0.517, 0.234] as [number, number],
+  /** Tree height, where the screen is 2 high: per unit of screen aspect, then its limits. */
+  treeFit: 1.2,
+  treeScale: [1.05, 2.1] as [number, number],
+  /** Moves the whole tree up (positive) or down on the screen. */
+  treeLift: 0.04,
+  /** Every picture is graded to this tint, keeping this share of its own colour. */
+  tint: "#fff1dc",
+  colour: 0.55,
+  /** Seconds each move takes to settle, however fast the scroll. */
+  smoothTime: 0.5,
+  /** The scroll range of each move. */
+  over: {
+    beamIn: [0.575, 0.64],
+    pan: [0.6, 0.715],
+    settle: [0.69, 0.75],
+    grow: [0.715, 0.83],
+    beamOut: [0.72, 0.79],
+    dim: [0.955, 1.0],
+  } as Record<
+    "beamIn" | "pan" | "settle" | "grow" | "beamOut" | "dim",
+    [number, number]
+  >,
+} as const;
+
 /** Loader: the shortest time the Breath scene stays on screen, in seconds. */
 export const loaderMinSeconds = 2.2;
 

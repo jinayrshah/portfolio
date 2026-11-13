@@ -66,7 +66,7 @@ export const story: Record<SceneId, StoryBlock> = {
     eyebrow: "Act III",
     title: "Creation",
     lines: ["Intention takes root, and grows."],
-    align: "center",
+    align: "right",
   },
   constellation: {
     eyebrow: "Work",

@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { tierSettings } from "@/lib/device";
 import { useStore } from "@/lib/store";
 import { CameraRig } from "./CameraRig";
+import { Creation } from "./Creation";
 import { DustField } from "./DustField";
 import { GuideLight } from "./GuideLight";
 import { Nebula } from "./Nebula";
@@ -44,6 +45,7 @@ export default function World() {
       <DustField count={settings.dust} />
       <Soul count={settings.soul} />
       <GuideLight />
+      <Creation />
       <FirstFrame />
     </Canvas>
   );

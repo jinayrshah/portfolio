@@ -77,7 +77,9 @@ export function GuideLight() {
       (reducedMotion
         ? 0.9
         : 0.86 + 0.14 * Math.sin(state.clock.elapsedTime * 0.9)) *
-      THREE.MathUtils.lerp(1, 0.45, inSoul);
+      THREE.MathUtils.lerp(1, 0.45, inSoul) *
+      // From the beam onwards the light is drawn by the Creation scene.
+      (1 - THREE.MathUtils.smoothstep(progress, 0.6, 0.66));
   });
 
   return (
