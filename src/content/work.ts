@@ -42,7 +42,7 @@ export const projects: Project[] = [
     solution:
       "One app that knows the farm. It tracks crop stage, advises irrigation from an FAO-56 water balance, fuses weather from three sources and follows mandi prices. A chat advisor answers from ICAR and IMD sources and checks leaf photos for disease. When data is missing, it says so instead of guessing.",
     stack: ["React", "FastAPI", "Supabase pgvector", "RAG", "Groq", "Gemini"],
-    facts: ["Team project", "2026"],
+    facts: ["Solo build", "2026"],
     image: "/work/agri.svg",
     href: "https://github.com/jinayrshah/ai-smart-adv-system",
     linkLabel: "View on GitHub",
@@ -132,12 +132,14 @@ export const cards: Card[] = [
     title: "Skills",
     line: "The roots: what everything else grows from.",
     items: [
-      { name: "Machine Learning", note: "CNNs, Grad-CAM" },
+      { name: "Machine Learning", note: "CNNs, scikit-learn" },
+      { name: "Deep Learning", note: "PyTorch, TensorFlow" },
       { name: "NLP and LLMs", note: "RAG, agents" },
       { name: "Python", note: "FastAPI, Flask" },
-      { name: "TypeScript", note: "React, Next.js" },
+      { name: "TypeScript", note: "React, Node.js" },
       { name: "Java", note: "Spring Boot" },
-      { name: "Data", note: "SQL, pgvector" },
+      { name: "Data", note: "SQL, Pandas, Tableau" },
+      { name: "Tools", note: "Git, Docker, Linux" },
     ],
   },
   {
