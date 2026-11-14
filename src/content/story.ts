@@ -54,11 +54,10 @@ export const story: Record<SceneId, StoryBlock> = {
     align: "bottom",
   },
   beam: {
-    // PLACEHOLDER: key numbers.
     lines: [
-      "00 years building",
-      "00 projects shipped",
-      "00 papers and studies",
+      "I learn by building.",
+      "AI that solves practical problems,",
+      "for the people who need it most.",
     ],
     align: "bottom",
   },
@@ -71,7 +70,7 @@ export const story: Record<SceneId, StoryBlock> = {
   constellation: {
     eyebrow: "Work",
     title: "Everything I have made",
-    lines: ["Projects, skills, research and achievements. Keep scrolling."],
+    lines: ["Projects, skills and the path so far. Keep scrolling."],
     align: "left",
   },
   return: {

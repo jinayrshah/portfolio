@@ -10,7 +10,7 @@ import { tierSettings } from "@/lib/device";
 import { sampleImage, seeded } from "@/lib/soulImage";
 import { treeNow } from "@/motion/now";
 import { creation, soul, work } from "@/motion/timeline";
-import { projects } from "@/content/work";
+import { stops } from "@/content/work";
 
 const vertex = /* glsl */ `
   varying vec2 vScreen;
@@ -351,7 +351,7 @@ export function Creation() {
 
     // Where the Work chapter is, in steps: project i is fully open at i.
     const step = work.position(workProgress);
-    const count = projects.length;
+    const count = stops;
     const ss = THREE.MathUtils.smoothstep;
     // The tree holds the projects, then rests behind the cards.
     const focusGoal =

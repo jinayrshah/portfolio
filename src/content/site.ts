@@ -1,20 +1,23 @@
 /**
  * Site-wide identity. Edit the text here; nothing else needs to change.
- * Everything marked PLACEHOLDER is replaced when the resume arrives.
+ *
  */
 export const site = {
   name: "Jinay Shah",
   initials: "JS",
-  /** PLACEHOLDER: one quiet line under the name, in the form "Role · Field · Focus". */
-  roleLine: "Role · Field · Focus",
+  /** One quiet line under the name, in the form "Role · Field · Focus". */
+  roleLine: "Software Developer · AI and ML · Mumbai",
   tagline: "From stillness, creation.",
   description:
     "The portfolio of Jinay Shah: a journey from the soul to the mind, and from the mind to creation.",
-  /** PLACEHOLDER: contact details and links shown in the Return scene. */
-  email: "hello@example.com",
+  /** Contact details and links shown in the closing scene. */
+  email: "jinay1606@gmail.com",
   resumeFile: "/resume.pdf",
   links: [
-    { label: "GitHub", href: "https://github.com/" },
-    { label: "LinkedIn", href: "https://www.linkedin.com/" },
+    { label: "GitHub", href: "https://github.com/jinayrshah" },
+    {
+      label: "LinkedIn",
+      href: "https://www.linkedin.com/in/jinay-shah-757a14316",
+    },
   ],
 } as const;

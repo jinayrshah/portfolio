@@ -1,4 +1,4 @@
-import { cards, projects } from "@/content/work";
+import { cards, stops } from "@/content/work";
 
 /**
  * The master timeline. Every scene length, camera keyframe, easing and
@@ -16,7 +16,7 @@ export const SCROLL_SCREENS = 6;
  * play, then carries on to the closing scene. Each project and each card
  * takes one step; `screensPerStep` is how much scrolling a step needs.
  */
-const workSteps = projects.length + cards.length;
+const workSteps = stops + cards.length;
 /** The cursor (desktop only): sizes in pixels, lag in seconds. */
 export const cursor = {
   size: { idle: 34, grab: 64, link: 54, open: 46 },

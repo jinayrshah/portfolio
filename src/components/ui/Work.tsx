@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties } from "react";
-import { cards, projects } from "@/content/work";
+import {
+  cards,
+  projects,
+  sideProjects,
+  sideTitle,
+  stops,
+} from "@/content/work";
 import { useStore } from "@/lib/store";
 import { treeNow } from "@/motion/now";
 import { creation, work } from "@/motion/timeline";
@@ -30,6 +36,28 @@ function routePath(points: [number, number][]) {
   return `${d} L${lx},${ly}`;
 }
 
+/** A title whose letters rise one after another. */
+function Letters({ title }: { title: string }) {
+  return (
+    <h3 className="proj__title" aria-label={title}>
+      {title.split(" ").map((word, w) => (
+        <span key={w} className="proj__word" aria-hidden>
+          {Array.from(word).map((letter, l) => (
+            <span key={l} className="proj__mask">
+              <span
+                className="proj__letter"
+                style={{ "--l": w * 3 + l } as CSSProperties}
+              >
+                {letter}
+              </span>
+            </span>
+          ))}
+        </span>
+      ))}
+    </h3>
+  );
+}
+
 /**
  * The Work chapter. A light rises from the tree's root and flows along its
  * branches to one blossom per project; as it arrives the blossom brightens and
@@ -40,7 +68,7 @@ function routePath(points: [number, number][]) {
 export function Work() {
   const root = useRef<HTMLElement>(null);
   const scrollToWork = useStore((s) => s.scrollToWork);
-  const routes = creation.routes.slice(0, projects.length);
+  const routes = creation.routes.slice(0, stops);
 
   useEffect(() => {
     const el = root.current;
@@ -228,7 +256,7 @@ export function Work() {
               />
               <circle className="canopy__dot" cx={x} cy={y} r={6} />
               <circle className="canopy__hit" cx={x} cy={y} r={30}>
-                <title>{projects[i].title}</title>
+                <title>{projects[i]?.title ?? sideTitle}</title>
               </circle>
             </g>
           );
@@ -245,46 +273,80 @@ export function Work() {
           <p className="proj__index label">
             <span>{pad(i + 1)}</span>
             <span className="proj__of">/ {pad(projects.length)}</span>
+            {p.status && <span className="leaf__status">{p.status}</span>}
           </p>
-          <h3 className="proj__title" aria-label={p.title}>
-            {p.title.split(" ").map((word, w) => (
-              <span key={w} className="proj__word" aria-hidden>
-                {Array.from(word).map((letter, l) => (
-                  <span key={l} className="proj__mask">
-                    <span
-                      className="proj__letter"
-                      style={{ "--l": w * 3 + l } as CSSProperties}
-                    >
-                      {letter}
-                    </span>
-                  </span>
-                ))}
-              </span>
-            ))}
-          </h3>
+          <Letters title={p.title} />
+          <p className="leaf__tagline">{p.tagline}</p>
           <div className="leaf__preview">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={p.image} alt="" loading="lazy" decoding="async" />
           </div>
           <div className="proj__meta">
-            <p className="proj__line">{p.line}</p>
+            <div className="leaf__part leaf__part--problem">
+              <p className="leaf__label label">The problem</p>
+              <p className="proj__line">{p.problem}</p>
+            </div>
+            <div className="leaf__part">
+              <p className="leaf__label label">What it does</p>
+              <p className="proj__line">{p.solution}</p>
+            </div>
             <ul className="proj__tags label">
-              {p.tags.map((tag) => (
+              {p.stack.map((tag) => (
                 <li key={tag}>{tag}</li>
               ))}
             </ul>
             <p className="proj__facts label">
-              <span>{p.role}</span>
-              <span>{p.year}</span>
+              {p.facts?.map((fact) => (
+                <span key={fact}>{fact}</span>
+              ))}
+              {p.href && (
+                <a
+                  className="proj__link"
+                  href={p.href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {p.linkLabel ?? "View project"}
+                </a>
+              )}
             </p>
-            {p.href && (
-              <a className="proj__link label" href={p.href}>
-                View project
-              </a>
-            )}
           </div>
         </article>
       ))}
+
+      {sideProjects.length > 0 && (
+        <article className="leaf leaf--side" aria-label={sideTitle}>
+          <p className="proj__index label">
+            <span>Also built</span>
+          </p>
+          <Letters title={sideTitle} />
+          <ul className="proj__meta side">
+            {sideProjects.map((p) => (
+              <li key={p.id} className="side__item">
+                {p.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    className="side__image"
+                    src={p.image}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+                <div>
+                  <h4 className="side__title">{p.title}</h4>
+                  <p className="proj__line">{p.line}</p>
+                  <ul className="proj__tags label">
+                    {p.stack.map((tag) => (
+                      <li key={tag}>{tag}</li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </article>
+      )}
 
       <div className="cards">
         {cards.map((card, j) => (
