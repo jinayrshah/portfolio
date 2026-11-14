@@ -7,7 +7,6 @@ import { site } from "./site";
  *  - title:   the large serif line (optional)
  *  - lines:   supporting copy, revealed one line at a time
  *  - align:   where the block sits on screen
- * Everything marked PLACEHOLDER is replaced when the resume arrives.
  */
 export type StoryBlock = {
   eyebrow?: string;
@@ -34,19 +33,21 @@ export const story: Record<SceneId, StoryBlock> = {
   stillness: {
     eyebrow: "About",
     title: "Stillness",
-    // PLACEHOLDER: who you are in three sentences.
     lines: [
-      "A first sentence about who you are.",
-      "A second about what you care about.",
-      "A third about where you are headed.",
+      "An Information Technology student in Mumbai.",
+      "Drawn to AI, language and the software around them.",
+      "Headed toward applied AI research.",
     ],
     align: "left",
   },
   awakening: {
     eyebrow: "How I think",
     title: "Awakening",
-    // PLACEHOLDER: three or four principles or focus areas.
-    lines: ["Principle one", "Principle two", "Principle three"],
+    lines: [
+      "Start from a real problem.",
+      "Build it to understand it.",
+      "Say what the system does not know.",
+    ],
     align: "right",
   },
   intention: {
