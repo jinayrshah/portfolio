@@ -28,7 +28,6 @@ export type Project = {
   image: string;
   /** Link to the code or live project. Leave out to show no link. */
   href?: string;
-  linkLabel?: string;
 };
 
 export const projects: Project[] = [
@@ -42,10 +41,9 @@ export const projects: Project[] = [
     solution:
       "One app that knows the farm. It tracks crop stage, advises irrigation from an FAO-56 water balance, fuses weather from three sources and follows mandi prices. A chat advisor answers from ICAR and IMD sources and checks leaf photos for disease. When data is missing, it says so instead of guessing.",
     stack: ["React", "FastAPI", "Supabase pgvector", "RAG", "Groq", "Gemini"],
-    facts: ["Solo build", "2026"],
+    facts: ["2026"],
     image: "/work/agri.svg",
     href: "https://github.com/jinayrshah/ai-smart-adv-system",
-    linkLabel: "View on GitHub",
   },
   {
     id: "heatshield",
@@ -60,7 +58,6 @@ export const projects: Project[] = [
     facts: ["2026"],
     image: "/work/heat.svg",
     href: "https://github.com/jinayrshah/heatshield",
-    linkLabel: "View on GitHub",
   },
   {
     id: "histoscan",
@@ -75,7 +72,6 @@ export const projects: Project[] = [
     facts: ["2026"],
     image: "/work/histoscan.webp",
     href: "https://github.com/jinayrshah/breastcancercnn",
-    linkLabel: "View on GitHub",
   },
 ];
 

@@ -8,14 +8,15 @@ const BARS = 28;
 
 /**
  * Sound on and off. A row of fine bars: while the sound plays they move with
- * it, and when it stops they settle into a quiet resting line. Sound is always
- * off until the visitor turns it on.
+ * it, and when it stops they settle into a quiet resting line. Sound is on by
+ * default: browsers only allow audio after a first click, tap or key press,
+ * so it begins on the visitor's first one.
  */
 export function SoundToggle() {
-  const [on, setOn] = useState(false);
+  const [on, setOn] = useState(true);
   const scape = useRef<Soundscape | null>(null);
   const bars = useRef<HTMLSpanElement[]>([]);
-  const onRef = useRef(false);
+  const onRef = useRef(true);
 
   useEffect(() => {
     let frame = 0;
@@ -53,15 +54,30 @@ export function SoundToggle() {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const toggle = async () => {
+  const apply = async () => {
     if (!scape.current) {
+      if (!onRef.current) return;
       const { Soundscape } = await import("@/lib/soundscape");
-      scape.current = new Soundscape();
+      scape.current ??= new Soundscape();
     }
-    const next = !onRef.current;
-    onRef.current = next;
-    scape.current.setOn(next);
-    setOn(next);
+    scape.current.setOn(onRef.current);
+  };
+
+  // Begin on the first gesture anywhere on the page.
+  useEffect(() => {
+    const events = ["pointerdown", "keydown", "touchend"] as const;
+    const begin = () => {
+      events.forEach((e) => window.removeEventListener(e, begin));
+      void apply();
+    };
+    events.forEach((e) => window.addEventListener(e, begin));
+    return () => events.forEach((e) => window.removeEventListener(e, begin));
+  }, []);
+
+  const toggle = () => {
+    onRef.current = !onRef.current;
+    setOn(onRef.current);
+    void apply();
   };
 
   return (
@@ -83,9 +99,6 @@ export function SoundToggle() {
             }}
           />
         ))}
-      </span>
-      <span className="sound__label label">
-        {on ? "Sound on" : "Sound off"}
       </span>
     </button>
   );

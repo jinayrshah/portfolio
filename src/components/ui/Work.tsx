@@ -8,6 +8,7 @@ import {
   sideTitle,
   stops,
 } from "@/content/work";
+import { Icon } from "@/components/ui/Icons";
 import { useStore } from "@/lib/store";
 import { treeNow } from "@/motion/now";
 import { creation, work } from "@/motion/timeline";
@@ -305,8 +306,13 @@ export function Work() {
                   href={p.href}
                   target="_blank"
                   rel="noreferrer"
+                  aria-label={`${p.title} on GitHub`}
+                  title="View the code on GitHub"
                 >
-                  {p.linkLabel ?? "View project"}
+                  <Icon name="GitHub" />
+                  <span className="proj__arrow" aria-hidden>
+                    ↗
+                  </span>
                 </a>
               )}
             </p>

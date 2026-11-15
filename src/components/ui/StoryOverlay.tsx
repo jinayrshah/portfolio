@@ -1,7 +1,9 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { site } from "@/content/site";
 import { story } from "@/content/story";
+import { Icon, hasIcon } from "@/components/ui/Icons";
 import { useStore } from "@/lib/store";
 import { scenes } from "@/motion/timeline";
 
@@ -71,6 +73,30 @@ export function StoryOverlay() {
                   </p>
                 ))}
               </div>
+            )}
+            {scene.id === "return" && (
+              <p className="block__links">
+                <a className="block__mail" href={`mailto:${site.email}`}>
+                  Write to me
+                </a>
+                {site.links.map((link) => (
+                  <a
+                    key={link.label}
+                    className="block__icon"
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={link.label}
+                    title={link.label}
+                  >
+                    {hasIcon(link.label) ? (
+                      <Icon name={link.label} />
+                    ) : (
+                      link.label
+                    )}
+                  </a>
+                ))}
+              </p>
             )}
           </section>
         );
